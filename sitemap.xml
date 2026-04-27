@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Homepage -->
+  <url>
+    <loc>https://retry5889.github.io/alamedahomepros/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Service Category Hubs -->
+  <url>
+    <loc>https://retry5889.github.io/alamedahomepros/plumbing/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://retry5889.github.io/alamedahomepros/hvac/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://retry5889.github.io/alamedahomepros/electrical/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- City Pages -->
+  <url>
+    <loc>https://retry5889.github.io/alamedahomepros/alameda/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Category x City Pages (Primary SEO Targets) -->
+  <url>
+    <loc>https://retry5889.github.io/alamedahomepros/plumbing/alameda/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://retry5889.github.io/alamedahomepros/hvac/alameda/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+  <url>
+    <loc>https://retry5889.github.io/alamedahomepros/electrical/alameda/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.95</priority>
+  </url>
+
+  <!-- Provider Profiles -->
+  <url>
+    <loc>https://retry5889.github.io/alamedahomepros/providers/bay-plumbing-co/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://retry5889.github.io/alamedahomepros/providers/bay-area-comfort/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://retry5889.github.io/alamedahomepros/providers/alameda-electric/</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+</urlset>

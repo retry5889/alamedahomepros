@@ -1,0 +1,4 @@
+# Preview build — not for indexing.
+User-agent: *
+Disallow: /
+Sitemap: https://retry5889.github.io/alamedahomepros/sitemap.xml

@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://www.example.com/schemas/review.json",
+  "title": "Provider Review",
+  "description": "Schema for individual provider reviews consumed by the build pipeline.",
+  "type": "object",
+  "required": [
+    "provider_slug",
+    "source",
+    "author_name",
+    "rating",
+    "review_text",
+    "review_date",
+    "verified"
+  ],
+  "properties": {
+    "provider_slug": {
+      "type": "string",
+      "description": "URL-safe identifier for the provider (e.g. bay-plumbing-co).",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "source": {
+      "type": "string",
+      "description": "Origin of the review.",
+      "enum": ["google", "provider-submitted"]
+    },
+    "author_name": {
+      "type": "string",
+      "description": "Name of the reviewer.",
+      "minLength": 1,
+      "maxLength": 120
+    },
+    "rating": {
+      "type": "integer",
+      "description": "Star rating from 1 to 5.",
+      "minimum": 1,
+      "maximum": 5
+    },
+    "review_text": {
+      "type": "string",
+      "description": "Body of the review. May be a PLACEHOLDER string for sample data.",
+      "minLength": 1
+    },
+    "review_date": {
+      "type": "string",
+      "description": "Date the review was written, in ISO 8601 format (YYYY-MM-DD).",
+      "format": "date"
+    },
+    "verified": {
+      "type": "boolean",
+      "description": "Whether the review has been verified (Google-verified or provider-confirmed)."
+    }
+  },
+  "additionalProperties": false
+}
