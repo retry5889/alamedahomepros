@@ -1,0 +1,112 @@
+name: Fetch (network egress proxy)
+
+on:
+  workflow_dispatch:
+    inputs:
+      url:
+        description: "Full URL to fetch"
+        required: true
+      output_path:
+        description: "Repo-relative path for the result (suffix .b64 for binary)"
+        required: true
+      method:
+        description: "HTTP method"
+        required: false
+        default: "GET"
+      headers:
+        description: "Extra headers, newline-separated 'Key: Value' (no secrets)"
+        required: false
+        default: ""
+      branch:
+        description: "Branch to commit results to (orphan-friendly)"
+        required: false
+        default: "fetched-data"
+      mode:
+        description: "commit or artifact"
+        required: false
+        default: "commit"
+
+concurrency:
+  group: fetch-${{ inputs.output_path }}
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    steps:
+      - name: Fetch URL
+        env:
+          URL: ${{ inputs.url }}
+          METHOD: ${{ inputs.method }}
+          HEADERS: ${{ inputs.headers }}
+          OUT: ${{ inputs.output_path }}
+        run: |
+          set -euo pipefail
+          mkdir -p "$(dirname "$OUT")"
+          HDR_ARGS=()
+          while IFS= read -r line; do
+            [ -n "$line" ] && HDR_ARGS+=(-H "$line")
+          done <<< "$HEADERS"
+          if [[ "$OUT" == *.b64 ]]; then
+            curl -fsSL -X "$METHOD" \
+              -A "Mozilla/5.0 (compatible; egress-skill/1.0)" \
+              "${HDR_ARGS[@]}" "$URL" | base64 > "$OUT"
+          else
+            curl -fsSL -X "$METHOD" \
+              -A "Mozilla/5.0 (compatible; egress-skill/1.0)" \
+              "${HDR_ARGS[@]}" "$URL" -o "$OUT"
+          fi
+          ls -lh "$OUT"
+
+      - name: Upload artifact
+        if: ${{ inputs.mode == 'artifact' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: fetched-${{ github.run_id }}
+          path: ${{ inputs.output_path }}
+          retention-days: 1
+
+      - name: Commit to branch
+        if: ${{ inputs.mode == 'commit' }}
+        env:
+          BRANCH: ${{ inputs.branch }}
+          OUT: ${{ inputs.output_path }}
+        run: |
+          set -euo pipefail
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          cp --parents "$OUT" "$RUNNER_TEMP/"
+
+          git init -q /tmp/pub
+          cd /tmp/pub
+          git remote add origin "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git"
+
+          if git ls-remote --exit-code origin "$BRANCH" >/dev/null 2>&1; then
+            git fetch -q origin "$BRANCH"
+            git checkout -q "$BRANCH"
+          else
+            git checkout -q --orphan "$BRANCH"
+            git rm -rfq . || true
+          fi
+
+          mkdir -p "$(dirname "$OUT")"
+          cp "$RUNNER_TEMP/$OUT" "$OUT"
+          git add "$OUT"
+          git commit -q -m "fetch: $OUT" || { echo "no changes"; exit 0; }
+          # Retry push with rebase to handle concurrent updates from parallel fetches.
+          for attempt in 1 2 3 4 5 6 7 8; do
+            if git push -q origin "$BRANCH"; then
+              echo "push succeeded on attempt $attempt"
+              exit 0
+            fi
+            echo "push attempt $attempt failed, rebasing"
+            git fetch -q origin "$BRANCH" || true
+            git rebase -q "origin/$BRANCH" || git rebase --abort || true
+            sleep $(( RANDOM % 5 + 2 ))
+          done
+          echo "push failed after retries"
+          exit 1
