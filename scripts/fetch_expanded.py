@@ -55,8 +55,9 @@ def _save(out_root: str, name: str, raw: bytes, meta: dict) -> dict:
 
 def fetch_fema(out_root: str) -> dict:
     # All disaster declarations since 2010. OpenFEMA v2, JSON.
+    filt = urllib.parse.quote("declarationDate ge '2010-01-01T00:00:00.000Z'")
     url = ("https://www.fema.gov/api/open/v2/DisasterDeclarationsSummaries?"
-           "$filter=declarationDate ge '2010-01-01T00:00:00.000Z'&$top=10000")
+           "$filter=" + filt + "&$top=10000")
     try:
         raw = _get(url)
         return _save(out_root, "fema_declarations", raw, {"source_url": url, "family": "F"})
@@ -67,12 +68,24 @@ def fetch_fema(out_root: str) -> dict:
 def fetch_treasury(out_root: str) -> dict:
     # Daily Treasury Statement: withheld income/employment taxes (Table II).
     url = ("https://api.fiscaldata.treasury.gov/services/api/fiscal_service/"
-           "v1/accounting/dts/operating_cash_balance?sort=-record_date&page[size]=2000")
+           "v1/accounting/dts/deposits_withdrawals_operating_cash_balance?"
+           "filter=account_type:eq:Treasury General Account (TGA) Closing Balance&sort=-record_date&page[size]=2000")
     try:
         raw = _get(url)
         return _save(out_root, "treasury_dts", raw, {"source_url": url, "family": "E"})
     except Exception as e:  # noqa: BLE001
         return {"name": "treasury", "ok": False, "error": str(e)}
+
+
+def fetch_treasury_withholding(out_root: str) -> dict:
+    # DTS Table: deposits of withheld income + payroll taxes (labor-income proxy).
+    url = ("https://api.fiscaldata.treasury.gov/services/api/fiscal_service/"
+           "v1/accounting/dts/issuance_of_tax_refunds?sort=-record_date&page[size]=2000")
+    try:
+        raw = _get(url)
+        return _save(out_root, "treasury_tax", raw, {"source_url": url, "family": "E"})
+    except Exception as e:  # noqa: BLE001
+        return {"name": "treasury_tax", "ok": False, "error": str(e)}
 
 
 def fetch_eia(out_root: str) -> dict:
@@ -116,6 +129,7 @@ def main() -> int:
     results = [
         fetch_fema(out_root + "/fema"),
         fetch_treasury(out_root + "/treasury"),
+        fetch_treasury_withholding(out_root + "/treasury"),
         fetch_eia(out_root + "/eia"),
         fetch_bls_stoppages(out_root + "/bls"),
         fetch_sec_edgar_index(out_root + "/sec"),
