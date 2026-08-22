@@ -67,9 +67,9 @@ def fetch_fema(out_root: str) -> dict:
 
 def fetch_treasury(out_root: str) -> dict:
     # Daily Treasury Statement: withheld income/employment taxes (Table II).
+    filt = urllib.parse.urlencode({"filter": "transaction_type:eq:Deposits", "sort": "-record_date", "page[size]": "2000"})
     url = ("https://api.fiscaldata.treasury.gov/services/api/fiscal_service/"
-           "v1/accounting/dts/deposits_withdrawals_operating_cash_balance?"
-           "filter=account_type:eq:Treasury General Account (TGA) Closing Balance&sort=-record_date&page[size]=2000")
+           "v1/accounting/dts/operating_cash_balance?" + filt)
     try:
         raw = _get(url)
         return _save(out_root, "treasury_dts", raw, {"source_url": url, "family": "E"})
@@ -79,8 +79,9 @@ def fetch_treasury(out_root: str) -> dict:
 
 def fetch_treasury_withholding(out_root: str) -> dict:
     # DTS Table: deposits of withheld income + payroll taxes (labor-income proxy).
+    filt = urllib.parse.urlencode({"sort": "-record_date", "page[size]": "2000"})
     url = ("https://api.fiscaldata.treasury.gov/services/api/fiscal_service/"
-           "v1/accounting/dts/issuance_of_tax_refunds?sort=-record_date&page[size]=2000")
+           "v1/accounting/dts/deposits?" + filt)
     try:
         raw = _get(url)
         return _save(out_root, "treasury_tax", raw, {"source_url": url, "family": "E"})
