@@ -1,7 +1,0 @@
-{
-  "ingested_time": "2026-08-22T18:30:49.250048+00:00",
-  "source_url": "https://api.weather.gov/alerts/active?status=actual&message_type=alert,update",
-  "file": "alerts_20260822T183049Z_37a2b8227098.json",
-  "sha256": "37a2b8227098144b0a19d972b5786af60c32c7d5465128818b3b12122a837ced",
-  "active_alerts": 300
-}

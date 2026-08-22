@@ -1,8 +1,0 @@
-{
-  "ingested_time": "2026-08-22T19:00:00.834051+00:00",
-  "file": "sec_8k_item205_20260822T190000Z_f2f3179ddddc.json",
-  "sha256": "f2f3179ddddc25a40030c386642969489666a7c1c17312c86027a6528c6b92cb",
-  "bytes": 59649,
-  "source_url": "https://efts.sec.gov/LATEST/search-index?q=%22Item+2.05%22&forms=8-K&startdt=2019-01-01&enddt=2022-12-31",
-  "family": "L"
-}

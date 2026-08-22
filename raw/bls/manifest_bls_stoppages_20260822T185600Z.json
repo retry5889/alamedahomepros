@@ -1,8 +1,0 @@
-{
-  "ingested_time": "2026-08-22T18:56:00.376580+00:00",
-  "file": "bls_stoppages_20260822T185600Z_938f8d147824.json",
-  "sha256": "938f8d1478242d23087307064b35c993610b1b4540ce60ff45d8b30fc0ea512a",
-  "bytes": 10405,
-  "source_url": "https://api.bls.gov/publicAPI/v2/timeseries/data/WSU001?startyear=2010&endyear=2022",
-  "family": "L"
-}

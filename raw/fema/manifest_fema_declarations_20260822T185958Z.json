@@ -1,8 +1,0 @@
-{
-  "ingested_time": "2026-08-22T18:59:58.437559+00:00",
-  "file": "fema_declarations_20260822T185958Z_ff916e5a3ca4.json",
-  "sha256": "ff916e5a3ca42cf1bda57fa86674f5581ce5548881d4dddb92a89085324fdf6f",
-  "bytes": 9131472,
-  "source_url": "https://www.fema.gov/api/open/v2/DisasterDeclarationsSummaries?$filter=declarationDate%20ge%20%272010-01-01T00%3A00%3A00.000Z%27&$top=10000",
-  "family": "F"
-}
