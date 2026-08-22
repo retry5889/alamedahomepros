@@ -1,0 +1,61 @@
+name: Google Trends weekly capture (frozen v1 term set)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '23 12 * * 1'  # Mondays 12:23 UTC (pre-DOL-week close)
+
+concurrency:
+  group: trends-fetch
+  cancel-in-progress: false
+
+jobs:
+  trends:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout fetcher repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run Trends capture (collect into ./payload)
+        run: |
+          set -uo pipefail
+          mkdir -p payload/raw/google_trends
+          OUTPUT_DIR=payload/raw/google_trends python3 scripts/fetch_google_trends.py || echo "trends rc=$?"
+          find payload -type f | head -20
+
+      - name: Commit payload to fetched-data branch
+        env:
+          BRANCH: fetched-data
+        run: |
+          set -euo pipefail
+          git config --global user.name "claims-data-fetcher[bot]"
+          git config --global user.email "claims-data-fetcher[bot]@users.noreply.github.com"
+          git init -q /tmp/pub
+          cd /tmp/pub
+          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          if git ls-remote --exit-code origin "$BRANCH" >/dev/null 2>&1; then
+            git fetch -q origin "$BRANCH"
+            git checkout -q "$BRANCH"
+          else
+            git checkout -q --orphan "$BRANCH"
+            git rm -rfq . || true
+          fi
+          mkdir -p raw/google_trends
+          cp -r "$GITHUB_WORKSPACE/payload/raw/google_trends/." raw/google_trends/ 2>/dev/null || { echo "no payload"; exit 0; }
+          git add raw/google_trends/
+          git commit -q -m "trends: weekly capture [run ${{ github.run_id }}]" || { echo "no changes"; exit 0; }
+          for attempt in 1 2 3 4 5; do
+            if git push -q origin "$BRANCH"; then echo "push ok"; exit 0; fi
+            git fetch -q origin "$BRANCH" || true
+            git rebase -q "origin/$BRANCH" || git rebase --abort || true
+            sleep $(( RANDOM % 5 + 2 ))
+          done
+          exit 1
