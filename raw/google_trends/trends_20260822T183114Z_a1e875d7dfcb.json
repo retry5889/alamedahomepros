@@ -1,0 +1,423 @@
+{
+  "term_set_version": "v1.0",
+  "geo": "US",
+  "timeframe": "now 7-d",
+  "ingested_time": "2026-08-22T18:31:14.036400+00:00",
+  "available_time": "2026-08-22T18:31:14.036400+00:00",
+  "results": [
+    {
+      "family": "F1_filing_intent",
+      "term": "file for unemployment",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F1_filing_intent",
+      "term": "file unemployment",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F1_filing_intent",
+      "term": "file unemployment claim",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F1_filing_intent",
+      "term": "apply for unemployment",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F1_filing_intent",
+      "term": "unemployment application",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F1_filing_intent",
+      "term": "claim unemployment",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F1_filing_intent",
+      "term": "unemployment claim",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F1_filing_intent",
+      "term": "how to file for unemployment",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F1_filing_intent",
+      "term": "unemployment file",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F1_filing_intent",
+      "term": "sign up for unemployment",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F2_benefits_status",
+      "term": "unemployment benefits",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F2_benefits_status",
+      "term": "unemployment payment",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F2_benefits_status",
+      "term": "unemployment check",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F2_benefits_status",
+      "term": "unemployment deposit",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F2_benefits_status",
+      "term": "when will unemployment be paid",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F2_benefits_status",
+      "term": "unemployment status",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F2_benefits_status",
+      "term": "unemployment pending",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F2_benefits_status",
+      "term": "unemployment approved",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F3_portal_access",
+      "term": "unemployment login",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F3_portal_access",
+      "term": "unemployment sign in",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F3_portal_access",
+      "term": "unemployment website",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F3_portal_access",
+      "term": "unemployment office near me",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F3_portal_access",
+      "term": "unemployment phone number",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F4_job_loss_event",
+      "term": "laid off",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F4_job_loss_event",
+      "term": "lost my job",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F4_job_loss_event",
+      "term": "got fired",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F4_job_loss_event",
+      "term": "let go",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F4_job_loss_event",
+      "term": "terminated from job",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F4_job_loss_event",
+      "term": "job loss",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F4_job_loss_event",
+      "term": "furloughed",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F4_job_loss_event",
+      "term": "furlough",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F5_severance_warn",
+      "term": "severance",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F5_severance_warn",
+      "term": "severance pay",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F5_severance_warn",
+      "term": "severance package",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F5_severance_warn",
+      "term": "WARN notice",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F5_severance_warn",
+      "term": "WARN act",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F5_severance_warn",
+      "term": "plant closing",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F5_severance_warn",
+      "term": "mass layoff",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "edd login",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "ui online",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "twc unemployment",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "ui texasworkforce",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "ny unemployment login",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "connect unemployment",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "florida unemployment login",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "uc pa",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "pa unemployment login",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "unemployment ohio gov",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "ides unemployment",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "miwam",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "georgia unemployment",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "nj unemployment",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "mylaimonen",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F7_spanish",
+      "term": "desempleo",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F7_spanish",
+      "term": "solicitar desempleo",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F7_spanish",
+      "term": "beneficios de desempleo",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F7_spanish",
+      "term": "seguro de desempleo",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F8_anxiety_leading",
+      "term": "layoffs coming",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F8_anxiety_leading",
+      "term": "will I be laid off",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F8_anxiety_leading",
+      "term": "company layoffs",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F8_anxiety_leading",
+      "term": "recession jobs",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F8_anxiety_leading",
+      "term": "job cuts",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F9_employer_side",
+      "term": "how to lay off employees",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F9_employer_side",
+      "term": "reduction in force",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F9_employer_side",
+      "term": "furlough employees",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F10_negative_controls",
+      "term": "lunar phase",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F10_negative_controls",
+      "term": "horoscope today",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F10_negative_controls",
+      "term": "nfl scores",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    },
+    {
+      "family": "F10_negative_controls",
+      "term": "weather mars",
+      "ok": false,
+      "error": "HTTP Error 429: unknown"
+    }
+  ]
+}

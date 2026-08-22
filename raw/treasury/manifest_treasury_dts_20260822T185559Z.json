@@ -1,0 +1,8 @@
+{
+  "ingested_time": "2026-08-22T18:55:59.936173+00:00",
+  "file": "treasury_dts_20260822T185559Z_df04afb86d85.json",
+  "sha256": "df04afb86d85f7a13c3e354970f709ec056aa75680bcf5592a47ca2110c2208d",
+  "bytes": 960227,
+  "source_url": "https://api.fiscaldata.treasury.gov/services/api/fiscal_service/v1/accounting/dts/operating_cash_balance?sort=-record_date&page[size]=2000",
+  "family": "E"
+}

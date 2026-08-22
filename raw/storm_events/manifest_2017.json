@@ -1,0 +1,8 @@
+{
+  "ingested_time": "2026-08-22T18:30:50.033213+00:00",
+  "source_url": "https://www1.ncdc.noaa.gov/pub/data/swdi/stormevents/csvfiles/StormEvents_details-ftp_v1.0_d2017_c20260519.csv.gz",
+  "file": "StormEvents_details_2017_dd0ace7e82c9.csv",
+  "sha256": "dd0ace7e82c9f9ea651b48edad427ad853dad97afc878d20e9796031cd578ed3",
+  "year": 2017,
+  "rows": 57041
+}

@@ -24,6 +24,8 @@ sys.path.insert(0, "/dev/null")  # standalone on public runner; term set inlined
 
 # Frozen v1 term set (byte-identical to cartesian-yacht ingestion/google_trends.py;
 # verified by scripts/verify_term_set.py) - DO NOT EDIT HERE.
+TERM_SET_VERSION = "v1.0"
+
 _FAMILIES = {
     "F10_negative_controls": ["lunar phase", "horoscope today", "nfl scores", "weather mars"],
     "F1_filing_intent": ["file for unemployment", "file unemployment", "file unemployment claim", "apply for unemployment", "unemployment application", "claim unemployment", "unemployment claim", "how to file for unemployment", "unemployment file", "sign up for unemployment"],
