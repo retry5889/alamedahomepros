@@ -161,7 +161,8 @@ def main() -> int:
                 if series:
                     entry.update(ok=True, n_points=len(series),
                                  first=series[0]["date"], last=series[-1]["date"],
-                                 last_value=series[-1]["value"])
+                                 last_value=series[-1]["value"],
+                                 series=series)
                 else:
                     entry.update(ok=False, error="empty series")
         except Exception as e:  # noqa: BLE001
