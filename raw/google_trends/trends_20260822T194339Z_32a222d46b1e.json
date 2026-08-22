@@ -1,0 +1,627 @@
+{
+  "term_set_version": "v1.0",
+  "geo": "US",
+  "timeframe": "today 5-y",
+  "ingested_time": "2026-08-22T19:43:39.220212+00:00",
+  "available_time": "2026-08-22T19:43:39.220212+00:00",
+  "results": [
+    {
+      "family": "F10_negative_controls",
+      "term": "lunar phase",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 11
+    },
+    {
+      "family": "F10_negative_controls",
+      "term": "horoscope today",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 36
+    },
+    {
+      "family": "F10_negative_controls",
+      "term": "nfl scores",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 3
+    },
+    {
+      "family": "F10_negative_controls",
+      "term": "weather mars",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 32
+    },
+    {
+      "family": "F1_filing_intent",
+      "term": "file for unemployment",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 68
+    },
+    {
+      "family": "F1_filing_intent",
+      "term": "file unemployment",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 52
+    },
+    {
+      "family": "F1_filing_intent",
+      "term": "file unemployment claim",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 30
+    },
+    {
+      "family": "F1_filing_intent",
+      "term": "apply for unemployment",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 63
+    },
+    {
+      "family": "F1_filing_intent",
+      "term": "unemployment application",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 51
+    },
+    {
+      "family": "F1_filing_intent",
+      "term": "claim unemployment",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 29
+    },
+    {
+      "family": "F1_filing_intent",
+      "term": "unemployment claim",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 30
+    },
+    {
+      "family": "F1_filing_intent",
+      "term": "how to file for unemployment",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 64
+    },
+    {
+      "family": "F1_filing_intent",
+      "term": "unemployment file",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 52
+    },
+    {
+      "family": "F1_filing_intent",
+      "term": "sign up for unemployment",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 47
+    },
+    {
+      "family": "F2_benefits_status",
+      "term": "unemployment benefits",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 23
+    },
+    {
+      "family": "F2_benefits_status",
+      "term": "unemployment payment",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 30
+    },
+    {
+      "family": "F2_benefits_status",
+      "term": "unemployment check",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 18
+    },
+    {
+      "family": "F2_benefits_status",
+      "term": "unemployment deposit",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 38
+    },
+    {
+      "family": "F2_benefits_status",
+      "term": "when will unemployment be paid",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 15
+    },
+    {
+      "family": "F2_benefits_status",
+      "term": "unemployment status",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 14
+    },
+    {
+      "family": "F2_benefits_status",
+      "term": "unemployment pending",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 23
+    },
+    {
+      "family": "F2_benefits_status",
+      "term": "unemployment approved",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 64
+    },
+    {
+      "family": "F3_portal_access",
+      "term": "unemployment login",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 19
+    },
+    {
+      "family": "F3_portal_access",
+      "term": "unemployment sign in",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 15
+    },
+    {
+      "family": "F3_portal_access",
+      "term": "unemployment website",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 24
+    },
+    {
+      "family": "F3_portal_access",
+      "term": "unemployment office near me",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 30
+    },
+    {
+      "family": "F3_portal_access",
+      "term": "unemployment phone number",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 23
+    },
+    {
+      "family": "F4_job_loss_event",
+      "term": "laid off",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 31
+    },
+    {
+      "family": "F4_job_loss_event",
+      "term": "lost my job",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 86
+    },
+    {
+      "family": "F4_job_loss_event",
+      "term": "got fired",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 27
+    },
+    {
+      "family": "F4_job_loss_event",
+      "term": "let go",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 63
+    },
+    {
+      "family": "F4_job_loss_event",
+      "term": "terminated from job",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 81
+    },
+    {
+      "family": "F4_job_loss_event",
+      "term": "job loss",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 22
+    },
+    {
+      "family": "F4_job_loss_event",
+      "term": "furloughed",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 2
+    },
+    {
+      "family": "F4_job_loss_event",
+      "term": "furlough",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 3
+    },
+    {
+      "family": "F5_severance_warn",
+      "term": "severance",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 8
+    },
+    {
+      "family": "F5_severance_warn",
+      "term": "severance pay",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 38
+    },
+    {
+      "family": "F5_severance_warn",
+      "term": "severance package",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 47
+    },
+    {
+      "family": "F5_severance_warn",
+      "term": "WARN notice",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 15
+    },
+    {
+      "family": "F5_severance_warn",
+      "term": "WARN act",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 4
+    },
+    {
+      "family": "F5_severance_warn",
+      "term": "plant closing",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 42
+    },
+    {
+      "family": "F5_severance_warn",
+      "term": "mass layoff",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 22
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "edd login",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 12
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "ui online",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 3
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "twc unemployment",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 41
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "ui texasworkforce",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 13
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "ny unemployment login",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 10
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "connect unemployment",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 5
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "florida unemployment login",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 11
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "uc pa",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 16
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "pa unemployment login",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 28
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "unemployment ohio gov",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 31
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "ides unemployment",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 12
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "miwam",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 8
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "georgia unemployment",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 34
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "nj unemployment",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 10
+    },
+    {
+      "family": "F6_state_portals",
+      "term": "mylaimonen",
+      "ok": false,
+      "error": "empty series"
+    },
+    {
+      "family": "F7_spanish",
+      "term": "desempleo",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 29
+    },
+    {
+      "family": "F7_spanish",
+      "term": "solicitar desempleo",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 11
+    },
+    {
+      "family": "F7_spanish",
+      "term": "beneficios de desempleo",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 16
+    },
+    {
+      "family": "F7_spanish",
+      "term": "seguro de desempleo",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 35
+    },
+    {
+      "family": "F8_anxiety_leading",
+      "term": "layoffs coming",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 16
+    },
+    {
+      "family": "F8_anxiety_leading",
+      "term": "will I be laid off",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 35
+    },
+    {
+      "family": "F8_anxiety_leading",
+      "term": "company layoffs",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 19
+    },
+    {
+      "family": "F8_anxiety_leading",
+      "term": "recession jobs",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 8
+    },
+    {
+      "family": "F8_anxiety_leading",
+      "term": "job cuts",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 18
+    },
+    {
+      "family": "F9_employer_side",
+      "term": "how to lay off employees",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 15
+    },
+    {
+      "family": "F9_employer_side",
+      "term": "reduction in force",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 7
+    },
+    {
+      "family": "F9_employer_side",
+      "term": "furlough employees",
+      "ok": true,
+      "n_points": 261,
+      "first": "1629590400",
+      "last": "1786838400",
+      "last_value": 1
+    }
+  ]
+}
