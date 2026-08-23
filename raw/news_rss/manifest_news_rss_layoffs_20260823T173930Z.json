@@ -1,0 +1,17 @@
+{
+  "ingested_time": "2026-08-23T17:39:30.849250+00:00",
+  "file": "news_rss_layoffs_20260823T173930Z_18f6119fec75.json",
+  "sha256": "18f6119fec75b7eb31ab7c850f9c570043265e756b051dd35655762bde1e2a50",
+  "bytes": 293607,
+  "source_url": "news.google.com/rss",
+  "family": "L",
+  "queries": [
+    "layoffs",
+    "mass layoff",
+    "job cuts",
+    "furlough workers",
+    "unemployment claims week",
+    "workers laid off"
+  ],
+  "items": 600
+}
