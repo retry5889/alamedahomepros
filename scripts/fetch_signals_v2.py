@@ -118,15 +118,22 @@ def fetch_te_wayback(out_root: str) -> dict:
         snaps = []
         ts_list = rows[1:] if rows else []
         os.makedirs(os.path.join(out_root, "te_wayback"), exist_ok=True)
-        # Sample ~weekly: one snapshot per ISO week, most recent per week
+        # Deduplicate to ~weekly: latest snapshot per ISO week (Sunday key)
         by_week = {}
         for r in ts_list:
             ts = r[1]
-            wk = ts[:8]  # daily key
-            by_week.setdefault(ts[:6], []).append(ts)  # monthly key
-        weekly = [max(v) for _, v in sorted(by_week.items())]
-        # Fetch up to 12 snapshots per run (rotate coverage over weeks; bounded)
-        for ts in weekly[-12:]:
+            from datetime import datetime as _dt
+            d = _dt.strptime(ts[:8], "%Y%m%d")
+            wk = d.strftime("%G-W%V")
+            by_week[wk] = ts  # later rows overwrite -> latest in week
+        weekly = sorted(set(by_week.values()))
+        # Rotate: fetch BATCH_SIZE per run, offset by run epoch so repeated runs
+        # sweep the archive systematically (9 runs cover 537 weekly snapshots).
+        BATCH = 60
+        epoch = int(os.environ.get("GITHUB_RUN_ID", "0")) % 9
+        start = (epoch * BATCH) % max(1, len(weekly))
+        batch = (weekly[start:] + weekly[:start])[:BATCH]
+        for ts in batch:
             ts = r[1]
             snap_url = f"https://web.archive.org/web/{ts}/{te}"
             try:
