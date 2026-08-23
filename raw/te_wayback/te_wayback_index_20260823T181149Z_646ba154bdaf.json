@@ -1,0 +1,245 @@
+{
+  "cdx_rows": 537,
+  "fetched": [
+    {
+      "timestamp": "20220709180016",
+      "bytes": 473155
+    },
+    {
+      "timestamp": "20220714205240",
+      "bytes": 473388
+    },
+    {
+      "timestamp": "20220728125411",
+      "bytes": 473048
+    },
+    {
+      "timestamp": "20220806015122",
+      "bytes": 474470
+    },
+    {
+      "timestamp": "20220818065007",
+      "bytes": 474470
+    },
+    {
+      "timestamp": "20220901213349",
+      "bytes": 477174
+    },
+    {
+      "timestamp": "20220908205304",
+      "bytes": 476709
+    },
+    {
+      "timestamp": "20220923085126",
+      "bytes": 476636
+    },
+    {
+      "timestamp": "20220929215503",
+      "bytes": 482288
+    },
+    {
+      "timestamp": "20221008082626",
+      "bytes": 482450
+    },
+    {
+      "timestamp": "20221013182625",
+      "bytes": 488842
+    },
+    {
+      "timestamp": "20221027203755",
+      "bytes": 489539
+    },
+    {
+      "timestamp": "20221103183906",
+      "bytes": 489692
+    },
+    {
+      "timestamp": "20221110194957",
+      "bytes": 489264
+    },
+    {
+      "timestamp": "20221119105655",
+      "bytes": 472286
+    },
+    {
+      "timestamp": "20221123193752",
+      "bytes": 489579
+    },
+    {
+      "timestamp": "20221201194000",
+      "bytes": 488357
+    },
+    {
+      "timestamp": "20221208085156",
+      "bytes": 488312
+    },
+    {
+      "timestamp": "20221215124456",
+      "bytes": 489738
+    },
+    {
+      "timestamp": "20221222202317",
+      "error": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "timestamp": "20221229212241",
+      "bytes": 491066
+    },
+    {
+      "timestamp": "20230105213951",
+      "bytes": 491195
+    },
+    {
+      "timestamp": "20230112205659",
+      "bytes": 489256
+    },
+    {
+      "timestamp": "20230122121714",
+      "bytes": 490528
+    },
+    {
+      "timestamp": "20230126205135",
+      "bytes": 490705
+    },
+    {
+      "timestamp": "20230130065953",
+      "bytes": 490929
+    },
+    {
+      "timestamp": "20230209204002",
+      "bytes": 491862
+    },
+    {
+      "timestamp": "20230217020440",
+      "bytes": 493888
+    },
+    {
+      "timestamp": "20230220001519",
+      "bytes": 493932
+    },
+    {
+      "timestamp": "20230302212329",
+      "bytes": 493278
+    },
+    {
+      "timestamp": "20230309192135",
+      "bytes": 492969
+    },
+    {
+      "timestamp": "20230319130535",
+      "bytes": 493938
+    },
+    {
+      "timestamp": "20230323225446",
+      "bytes": 493955
+    },
+    {
+      "timestamp": "20230330185712",
+      "bytes": 494293
+    },
+    {
+      "timestamp": "20230530190952",
+      "bytes": 504426
+    },
+    {
+      "timestamp": "20230629212341",
+      "bytes": 504591
+    },
+    {
+      "timestamp": "20230720215431",
+      "bytes": 504764
+    },
+    {
+      "timestamp": "20230727182429",
+      "bytes": 504619
+    },
+    {
+      "timestamp": "20230803182537",
+      "error": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "timestamp": "20230824183429",
+      "bytes": 505728
+    },
+    {
+      "timestamp": "20230902025007",
+      "bytes": 376042
+    },
+    {
+      "timestamp": "20230907185357",
+      "bytes": 470783
+    },
+    {
+      "timestamp": "20230921213934",
+      "bytes": 446221
+    },
+    {
+      "timestamp": "20230928070415",
+      "bytes": 446740
+    },
+    {
+      "timestamp": "20231005193802",
+      "bytes": 836095
+    },
+    {
+      "timestamp": "20231019214926",
+      "bytes": 311551
+    },
+    {
+      "timestamp": "20231026185144",
+      "bytes": 312278
+    },
+    {
+      "timestamp": "20231102213547",
+      "bytes": 312865
+    },
+    {
+      "timestamp": "20231116192334",
+      "bytes": 312589
+    },
+    {
+      "timestamp": "20231122205049",
+      "bytes": 312810
+    },
+    {
+      "timestamp": "20231130203642",
+      "error": "<urlopen error [Errno 111] Connection refused>"
+    },
+    {
+      "timestamp": "20231222124019",
+      "bytes": 312069
+    },
+    {
+      "timestamp": "20231228200701",
+      "bytes": 311520
+    },
+    {
+      "timestamp": "20240111202217",
+      "bytes": 312238
+    },
+    {
+      "timestamp": "20240118025132",
+      "bytes": 312520
+    },
+    {
+      "timestamp": "20240217025632",
+      "bytes": 312792
+    },
+    {
+      "timestamp": "20240222200653",
+      "bytes": 312739
+    },
+    {
+      "timestamp": "20240229203739",
+      "bytes": 313070
+    },
+    {
+      "timestamp": "20240307192156",
+      "bytes": 283710
+    },
+    {
+      "timestamp": "20240329142159",
+      "bytes": 274915
+    }
+  ]
+}
