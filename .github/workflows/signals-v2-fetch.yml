@@ -1,0 +1,60 @@
+name: Signal capture v2 (WARN, News RSS, Treasury withholding, TE Wayback)
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '37 12 * * 3'  # Wednesdays 12:37 UTC (before Thursday DOL deadline)
+
+concurrency:
+  group: signals-v2-fetch
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run signal capture
+        run: |
+          set -uo pipefail
+          mkdir -p payload/raw
+          OUTPUT_DIR=payload/raw python3 scripts/fetch_signals_v2.py || echo "signals rc=$?"
+          find payload -type f | head -30
+      - name: Commit payload to fetched-data branch
+        env:
+          BRANCH: fetched-data
+        run: |
+          set -euo pipefail
+          git config --global user.name "claims-data-fetcher[bot]"
+          git config --global user.email "claims-data-fetcher[bot]@users.noreply.github.com"
+          git init -q /tmp/pub
+          cd /tmp/pub
+          git remote add origin "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git"
+          if git ls-remote --exit-code origin "$BRANCH" >/dev/null 2>&1; then
+            git fetch -q origin "$BRANCH"
+            git checkout -q "$BRANCH"
+          else
+            git checkout -q --orphan "$BRANCH"
+            git rm -rfq . || true
+          fi
+          for d in warn news_rss treasury te_wayback; do
+            if [ -d "$GITHUB_WORKSPACE/payload/raw/$d" ]; then
+              mkdir -p "raw/$d"
+              cp -r "$GITHUB_WORKSPACE/payload/raw/$d/." "raw/$d/"
+            fi
+          done
+          git add raw/ || true
+          git commit -q -m "signals-v2: capture [run ${{ github.run_id }}]" || { echo "no changes"; exit 0; }
+          for attempt in 1 2 3 4 5; do
+            if git push -q origin "$BRANCH"; then echo "push ok"; exit 0; fi
+            git fetch -q origin "$BRANCH" || true
+            git rebase -q "origin/$BRANCH" || git rebase --abort || true
+            sleep $(( RANDOM % 5 + 2 ))
+          done
+          exit 1
