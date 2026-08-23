@@ -25,7 +25,7 @@ jobs:
           set -uo pipefail
           mkdir -p payload/raw
           OUTPUT_DIR=payload/raw python3 scripts/fetch_signals_v2.py || echo "signals rc=$?"
-          find payload -type f | head -30
+          find payload -type f | head -30 || true
       - name: Commit payload to fetched-data branch
         env:
           BRANCH: fetched-data
