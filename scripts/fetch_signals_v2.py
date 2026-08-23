@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 import re
+import time
 import urllib.parse
 import urllib.request
 from datetime import datetime, timezone
@@ -134,10 +135,20 @@ def fetch_te_wayback(out_root: str) -> dict:
         start = (epoch * BATCH) % max(1, len(weekly))
         batch = (weekly[start:] + weekly[:start])[:BATCH]
         for ts in batch:
-            ts = r[1]
             snap_url = f"https://web.archive.org/web/{ts}/{te}"
+            page = None
+            for attempt in range(4):
+                try:
+                    page = _get(snap_url, timeout=90)
+                    break
+                except Exception as e:  # noqa: BLE001
+                    if attempt == 3:
+                        snaps.append({"timestamp": ts, "error": str(e)[:120]})
+                        break
+                    time.sleep(6 * (attempt + 1))
+            if page is None:
+                continue
             try:
-                page = _get(snap_url, timeout=90)
                 snaps.append({"timestamp": ts, "bytes": len(page)})
                 digest = sha256(page)
                 fname = f"te_wayback_{ts}.json"
