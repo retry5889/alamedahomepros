@@ -117,8 +117,16 @@ def fetch_te_wayback(out_root: str) -> dict:
         rows = json.loads(cdx_raw.decode("utf-8", "ignore"))
         snaps = []
         ts_list = rows[1:] if rows else []
-        # Fetch the most recent 3 snapshots' full pages (bounded; don't hammer IA)
-        for r in ts_list[-3:]:
+        os.makedirs(os.path.join(out_root, "te_wayback"), exist_ok=True)
+        # Sample ~weekly: one snapshot per ISO week, most recent per week
+        by_week = {}
+        for r in ts_list:
+            ts = r[1]
+            wk = ts[:8]  # daily key
+            by_week.setdefault(ts[:6], []).append(ts)  # monthly key
+        weekly = [max(v) for _, v in sorted(by_week.items())]
+        # Fetch up to 12 snapshots per run (rotate coverage over weeks; bounded)
+        for ts in weekly[-12:]:
             ts = r[1]
             snap_url = f"https://web.archive.org/web/{ts}/{te}"
             try:
