@@ -128,12 +128,17 @@ def fetch_te_wayback(out_root: str) -> dict:
             wk = d.strftime("%G-W%V")
             by_week[wk] = ts  # later rows overwrite -> latest in week
         weekly = sorted(set(by_week.values()))
-        # Rotate: fetch BATCH_SIZE per run, offset by run epoch so repeated runs
-        # sweep the archive systematically (9 runs cover 537 weekly snapshots).
+        # Skip timestamps already archived (HAVE_DIR = checkout of raw/ from fetched-data)
+        have_dir = os.environ.get("HAVE_DIR", "")
+        have = set()
+        if have_dir and os.path.isdir(os.path.join(have_dir, "te_wayback")):
+            for fn in os.listdir(os.path.join(have_dir, "te_wayback")):
+                m = re.match(r"te_wayback_(\d{14})\.json", fn)
+                if m:
+                    have.add(m.group(1))
+        todo = [ts for ts in weekly if ts not in have]
         BATCH = 60
-        epoch = int(os.environ.get("GITHUB_RUN_ID", "0")) % 9
-        start = (epoch * BATCH) % max(1, len(weekly))
-        batch = (weekly[start:] + weekly[:start])[:BATCH]
+        batch = todo[:BATCH]
         for ts in batch:
             snap_url = f"https://web.archive.org/web/{ts}/{te}"
             page = None
