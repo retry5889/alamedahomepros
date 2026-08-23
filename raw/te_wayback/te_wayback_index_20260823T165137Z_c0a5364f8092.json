@@ -1,0 +1,29 @@
+{
+  "cdx_rows": 537,
+  "fetched": [
+    {
+      "timestamp": "20260814145732",
+      "bytes": 377116
+    },
+    {
+      "timestamp": "20260814145732",
+      "error": "[Errno 2] No such file or directory: 'payload/raw/te_wayback/te_wayback_20260814145732.json'"
+    },
+    {
+      "timestamp": "20260816062737",
+      "bytes": 377162
+    },
+    {
+      "timestamp": "20260816062737",
+      "error": "[Errno 2] No such file or directory: 'payload/raw/te_wayback/te_wayback_20260816062737.json'"
+    },
+    {
+      "timestamp": "20260822062222",
+      "bytes": 377311
+    },
+    {
+      "timestamp": "20260822062222",
+      "error": "[Errno 2] No such file or directory: 'payload/raw/te_wayback/te_wayback_20260822062222.json'"
+    }
+  ]
+}
