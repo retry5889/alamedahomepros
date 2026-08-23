@@ -6073,7 +6073,7 @@ window.cookieconsent.initialise({
 </html>
 <!--
      FILE ARCHIVED ON 18:19:09 May 01, 2019 AND RETRIEVED FROM THE
-     INTERNET ARCHIVE ON 17:42:34 Aug 23, 2026.
+     INTERNET ARCHIVE ON 20:55:42 Aug 23, 2026.
      JAVASCRIPT APPENDED BY WAYBACK MACHINE, COPYRIGHT INTERNET ARCHIVE.
 
      ALL OTHER CONTENT MAY ALSO BE PROTECTED BY COPYRIGHT (17 U.S.C.
@@ -6081,13 +6081,13 @@ window.cookieconsent.initialise({
 -->
 <!--
 playback timings (ms):
-  captures_list: 0.464
-  exclusion.robots: 0.072
-  exclusion.robots.policy: 0.05
+  captures_list: 0.393
+  exclusion.robots: 0.04
+  exclusion.robots.policy: 0.032
   esindex: 0.006
-  cdx.remote: 44.553
-  LoadShardBlock: 374.808 (3)
-  PetaboxLoader3.resolve: 709.653 (3)
-  PetaboxLoader3.datanode: 105.455 (4)
-  load_resource: 646.502
+  cdx.remote: 9.805
+  LoadShardBlock: 210.517 (3)
+  PetaboxLoader3.datanode: 126.991 (4)
+  PetaboxLoader3.resolve: 521.529 (2)
+  load_resource: 469.095
 -->
