@@ -2,120 +2,49 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Claims Card</title>
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
-<!-- Gate: soft access check only. NOT real security. -->
-<div id="gate" class="gate">
-  <div class="gate-box">
-    <h1>Claims Card</h1>
-    <p class="gate-sub">Enter your access code</p>
-    <input id="code-input" class="code-input" type="text" inputmode="text" autocomplete="off"
-           spellcheck="false" maxlength="4" placeholder="••••" aria-label="Access code">
-    <button id="code-submit" class="gate-btn">Enter</button>
-    <p id="gate-error" class="gate-error" hidden>Wrong code. Try again.</p>
-  </div>
+<div id="gate">
+  <input id="code-input" type="text" autocomplete="off" autocapitalize="characters"
+         spellcheck="false" maxlength="4" placeholder="CODE" aria-label="Access code">
+  <button id="code-submit">Enter</button>
+  <p id="gate-error" hidden>Wrong code.</p>
 </div>
 
 <main id="app" hidden>
-  <header class="masthead">
-    <h1>Claims Card</h1>
-    <p class="tagline">Weekly jobless-claims threshold prices, three models, live.</p>
-  </header>
+  <h1>Claims Card <span id="as-of" class="as-of"></span></h1>
 
-  <section class="inputs">
-    <div class="input-grid">
-      <div class="field">
-        <label for="in-anchor">Last print (K)</label>
-        <input id="in-anchor" type="number" step="1" value="206">
-      </div>
-      <div class="field">
-        <label for="in-consensus">Consensus (K)</label>
-        <input id="in-consensus" type="number" step="1" value="210">
-      </div>
-      <div class="field">
-        <label for="in-forecast">TE forecast (K)</label>
-        <input id="in-forecast" type="number" step="1" value="212">
-      </div>
-      <div class="field">
-        <label for="in-threshold">Threshold (K)</label>
-        <input id="in-threshold" type="number" step="1" value="195">
-      </div>
-      <div class="field">
-        <label for="in-market">Market price (¢) <span class="opt">optional</span></label>
-        <input id="in-market" type="number" step="1" min="1" max="99" value="74">
-      </div>
-      <div class="field">
-        <label for="in-bankroll">Bankroll ($) <span class="opt">optional</span></label>
-        <input id="in-bankroll" type="number" step="100" value="10000">
-      </div>
-    </div>
-  </section>
+  <form id="frm">
+    <div class="row"><label for="in-anchor">Last print</label><input id="in-anchor" type="text" inputmode="decimal"></div>
+    <div class="row"><label for="in-consensus">Consensus</label><input id="in-consensus" type="text" inputmode="decimal"></div>
+    <div class="row"><label for="in-forecast">TE forecast</label><input id="in-forecast" type="text" inputmode="decimal"></div>
+    <div class="row"><label for="in-threshold">Threshold</label><input id="in-threshold" type="text" inputmode="decimal"></div>
+    <div class="row"><label for="in-market">Market ¢</label><input id="in-market" type="text" inputmode="decimal" placeholder="—"></div>
+  </form>
 
-  <section class="verdict" id="verdict-box">
-    <div id="verdict-line" class="verdict-line"></div>
-    <div id="edge-line" class="edge-line"></div>
-  </section>
+  <p id="verdict" class="verdict"></p>
 
-  <section class="results">
-    <div class="model-row" id="model-rows"></div>
-  </section>
+  <div id="prices"></div>
 
-  <section class="charts">
-    <div class="chart-block">
-      <h2 id="ladder-title"></h2>
-      <p class="chart-sub" id="ladder-sub"></p>
-      <div id="chart-ladder" class="chart"></div>
-    </div>
-    <div class="chart-block">
-      <h2 id="curves-title"></h2>
-      <p class="chart-sub" id="curves-sub"></p>
-      <div id="chart-curves" class="chart"></div>
-    </div>
-    <div class="chart-block">
-      <h2 id="density-title"></h2>
-      <p class="chart-sub" id="density-sub"></p>
-      <div id="chart-density" class="chart"></div>
-    </div>
-    <div class="chart-block">
-      <h2 id="edge-title"></h2>
-      <p class="chart-sub" id="edge-sub"></p>
-      <div id="chart-edge" class="chart"></div>
-    </div>
-  </section>
+  <div id="chart-ladder-wrap">
+    <div id="chart-ladder"></div>
+  </div>
 
-  <section class="kelly" id="kelly-box"></section>
+  <button id="edge-toggle" class="toggle" type="button">Show edge by threshold</button>
+  <div id="chart-edge-wrap" hidden>
+    <div id="chart-edge"></div>
+  </div>
 
-  <details class="method">
-    <summary>How this works</summary>
-    <div class="method-body">
-      <p>Three models, one formula. Each model is a normal distribution over
-      next week's claims print:</p>
-      <ul>
-        <li><strong>No-change</strong> (blue): center = last print, spread 13.0K.</li>
-        <li><strong>Consensus blend</strong> (orange): center = last print moved 50% toward the analyst consensus, spread 12.4K.</li>
-        <li><strong>Forecast blend</strong> (green): center = last print moved 90% toward the TE model forecast, spread 12.0K.</li>
-      </ul>
-      <p>P(over T) = Phi((center − T) / spread), where Phi is the standard
-      normal CDF. The spreads come from each model's measured correlation
-      with the weekly change on 58 test weeks of leakage-safe data:
-      variance shrinks by rho², so the challengers are tighter.</p>
-      <p>The spread constants are provisional. The two challenger models
-      carry real but unproven edges (+0.02 and +0.00 log score vs
-      no-change, within noise). The 84-week prospective test running now
-      settles it. Treat the card as a pricing baseline, not a crystal ball.</p>
-      <p><strong>Known blind spot:</strong> in every big-move week in the
-      test sample (13 of 13), all three models missed in the same
-      direction. Averaging correlated opinions cannot see a move nobody
-      saw. If a market prices a big move, that is information this card
-      does not contain.</p>
-    </div>
-  </details>
-
-  <footer class="foot">For research. Not advice. No change is the champion until proven otherwise.</footer>
+  <p class="fine">P(over T) = Φ((center − T)/spread). No-change: spread 13.0K.
+  Consensus blend (50% tilt): 12.4K. Forecast blend (90% tilt): 12.0K.
+  Challenger spreads provisional. All models missed every 15K+ move in the
+  test sample — a market pricing a big move knows something this doesn't.</p>
 </main>
 
 <script src="app.js"></script>
