@@ -54,7 +54,7 @@ def _te_rows_to_values(rows):
     for rel, rw, actual, fcv, consv in rows:
         if rel > today:
             if cons is None:
-                cons, fc = float(consv), float(fcv)
+                cons, fc = float(fcv), float(consv)
         else:
             anchor = int(float(actual))  # last released actual
     return cons, fc, anchor
@@ -111,7 +111,7 @@ def latest_te() -> tuple[float | None, float | None, int | None]:
         anchor = None
         for rel, rw, actual, fcv, consv in rows:
             if rel > today and cons is None:
-                cons, fc = float(consv), float(fcv)
+                cons, fc = float(fcv), float(consv)
             elif rel <= today:
                 anchor = int(float(actual))  # keep updating: last released actual
         return cons, fc, anchor
