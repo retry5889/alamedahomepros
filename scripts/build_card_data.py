@@ -36,8 +36,10 @@ def latest_icsa() -> int | None:
         return None
 
 
-def latest_te() -> tuple[float | None, float | None]:
-    """Consensus + forecast from the newest TE snapshot in fetched-data."""
+def latest_te() -> tuple[float | None, float | None, int | None]:
+    """Anchor + consensus + forecast from the newest TE snapshot in fetched-data.
+    The anchor (latest actual print) is the most recent RELEASED row; the pending
+    week's consensus/forecast come from the future-dated row."""
     try:
         out = subprocess.run(
             ["git", "ls-remote", "origin", "refs/heads/fetched-data"],
@@ -66,24 +68,25 @@ def latest_te() -> tuple[float | None, float | None]:
         pat = re.compile(r"(\d{4}-\d{2}-\d{2})~\d{2}:\d{2}~PM~Initial~Jobless~Claims~"
                          r"([A-Z][a-z]{2}/\d{2})~([\d,\.]+)K~([\d,\.]+)K~([\d,\.]+)K~")
         rows = pat.findall(flat)
-        # rows: (release, refweek, actual, forecast, consensus); the FUTURE row
-        # (release in the future) is the pending week -> its forecast+consensus
+        # rows: (release, refweek, actual, forecast, consensus)
         today = datetime.now(timezone.utc).date().isoformat()
-        for rel, rw, actual, fc, cons in rows:
-            if rel > today:
-                return float(cons), float(fc)
-        # fallback: last row's numbers
-        if rows:
-            rel, rw, actual, fc, cons = rows[-1]
-            return float(cons), float(fc)
+        cons = fc = None
+        anchor = None
+        for rel, rw, actual, fcv, consv in rows:
+            if rel > today and cons is None:
+                cons, fc = float(consv), float(fcv)
+            elif rel <= today:
+                anchor = int(float(actual))  # keep updating: last released actual
+        return cons, fc, anchor
     except Exception as e:
         print("te parse failed:", e)
-    return None, None
+    return None, None, None
 
 
 def main() -> int:
-    anchor = latest_icsa()
-    cons, fc = latest_te()
+    cons, fc, anchor = latest_te()
+    if anchor is None:
+        anchor = latest_icsa()  # fallback
     data = {
         "anchor": anchor,
         "consensus": cons,
