@@ -25,25 +25,45 @@
 
 <main id="app" hidden>
   <header class="hdr">
-    <h1>Claims Card</h1>
-    <span id="as-of" class="as-of"></span>
+    <div class="hdr-left">
+      <h1>Claims Card</h1>
+      <span id="as-of" class="as-of"></span>
+    </div>
+    <button id="btn-lock" class="btn-lock" type="button" aria-label="Lock card">Lock</button>
   </header>
 
-  <section class="decide" aria-label="Decision inputs">
-    <div class="d-row">
-      <label for="in-threshold">Threshold <small>K</small></label>
-      <div class="stepper">
-        <button type="button" class="step" data-for="in-threshold" data-step="-5" aria-label="Threshold down 5K">−5</button>
-        <input id="in-threshold" type="text" inputmode="decimal">
-        <button type="button" class="step" data-for="in-threshold" data-step="5" aria-label="Threshold up 5K">+5</button>
+  <section class="inputs-grid" aria-label="Calculator inputs">
+    <div class="decide">
+      <div class="d-row">
+        <label for="in-threshold">Threshold <small>K</small></label>
+        <div class="stepper">
+          <button type="button" class="step" data-for="in-threshold" data-step="-5" aria-label="Threshold down 5K">−5</button>
+          <input id="in-threshold" type="text" inputmode="decimal">
+          <button type="button" class="step" data-for="in-threshold" data-step="5" aria-label="Threshold up 5K">+5</button>
+        </div>
+      </div>
+      <div class="d-row">
+        <label for="in-market">Market YES <small>¢</small></label>
+        <div class="stepper">
+          <button type="button" class="step" data-for="in-market" data-step="-1" aria-label="Market price down 1 cent">−1</button>
+          <input id="in-market" type="text" inputmode="decimal" placeholder="—">
+          <button type="button" class="step" data-for="in-market" data-step="1" aria-label="Market price up 1 cent">+1</button>
+        </div>
       </div>
     </div>
-    <div class="d-row">
-      <label for="in-market">Market YES <small>¢</small></label>
-      <div class="stepper">
-        <button type="button" class="step" data-for="in-market" data-step="-1" aria-label="Market price down 1 cent">−1</button>
-        <input id="in-market" type="text" inputmode="decimal" placeholder="—">
-        <button type="button" class="step" data-for="in-market" data-step="1" aria-label="Market price up 1 cent">+1</button>
+
+    <div class="baselines" aria-label="Weekly baselines">
+      <div class="b-col">
+        <label for="in-anchor">Last <small>K</small></label>
+        <input id="in-anchor" type="text" inputmode="decimal">
+      </div>
+      <div class="b-col">
+        <label for="in-consensus">Cons <small>K</small></label>
+        <input id="in-consensus" type="text" inputmode="decimal">
+      </div>
+      <div class="b-col">
+        <label for="in-forecast">Fcst <small>K</small></label>
+        <input id="in-forecast" type="text" inputmode="decimal">
       </div>
     </div>
   </section>
@@ -56,21 +76,15 @@
 
   <div id="prices"></div>
 
-  <div id="chart-ladder-wrap">
+  <div class="chart-card">
+    <div class="chart-hdr">Probability Ladder</div>
     <div id="chart-ladder"></div>
   </div>
 
-  <button id="edge-toggle" class="toggle" type="button" aria-expanded="false">Edge by threshold ▾</button>
-  <div id="chart-edge-wrap" hidden>
+  <div class="chart-card">
+    <div class="chart-hdr">Edge Across Thresholds</div>
     <div id="chart-edge"></div>
   </div>
-
-  <details class="weekly">
-    <summary><span>Weekly data</span><span id="weekly-vals" class="weekly-vals"></span></summary>
-    <div class="row"><label for="in-anchor">Last print <small>K</small></label><input id="in-anchor" type="text" inputmode="decimal"></div>
-    <div class="row"><label for="in-consensus">Consensus <small>K</small></label><input id="in-consensus" type="text" inputmode="decimal"></div>
-    <div class="row"><label for="in-forecast">TE forecast <small>K</small></label><input id="in-forecast" type="text" inputmode="decimal"></div>
-  </details>
 
   <div class="fine">
     <p><b>Model</b> P(over T) = Φ((center − T) / spread)</p>
