@@ -22,15 +22,15 @@ UA = {"User-Agent": "claims-card-builder/1.0"}
 
 
 def latest_icsa() -> int | None:
-    """Anchor: latest advance print from ALFRED's newest ICSA vintage."""
-    url = ("https://api.stlouisfed.org/fred/series/observations?"
-           "series_id=ICSA&sort_order=desc&limit=1&file_type=json")
+    """Anchor: latest ICSA print via the no-key fredgraph CSV endpoint."""
+    url = "https://fred.stlouisfed.org/graph/fredgraph.csv?id=ICSA"
     try:
         req = urllib.request.Request(url, headers=UA)
         with urllib.request.urlopen(req, timeout=60) as r:
-            d = json.loads(r.read().decode())
-        obs = d["observations"][0]
-        return int(float(obs["value"]))
+            rows = r.read().decode().strip().splitlines()
+        # rows: DATE,VALUE ... last row = newest
+        last = rows[-1].split(",")
+        return int(float(last[1]))
     except Exception as e:
         print("icsa fetch failed:", e)
         return None
