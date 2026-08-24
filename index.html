@@ -6,29 +6,53 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101114" media="(prefers-color-scheme: dark)">
 <title>Claims Card</title>
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
 <div id="gate">
-  <input id="code-input" type="text" autocomplete="off" autocapitalize="characters"
-         spellcheck="false" maxlength="4" placeholder="CODE" aria-label="Access code">
-  <button id="code-submit">Enter</button>
-  <p id="gate-error" hidden>Wrong code.</p>
+  <div class="gate-box">
+    <h1 class="gate-title">Claims Card</h1>
+    <input id="code-input" type="text" autocomplete="off" autocapitalize="characters"
+           spellcheck="false" maxlength="4" placeholder="CODE" aria-label="Access code">
+    <button id="code-submit">Enter</button>
+    <p id="gate-error" hidden>Wrong code.</p>
+  </div>
 </div>
 
 <main id="app" hidden>
-  <h1>Claims Card <span id="as-of" class="as-of"></span></h1>
+  <header class="hdr">
+    <h1>Claims Card</h1>
+    <span id="as-of" class="as-of"></span>
+  </header>
 
-  <form id="frm">
-    <div class="row"><label for="in-anchor">Last print</label><input id="in-anchor" type="text" inputmode="decimal"></div>
-    <div class="row"><label for="in-consensus">Consensus</label><input id="in-consensus" type="text" inputmode="decimal"></div>
-    <div class="row"><label for="in-forecast">TE forecast</label><input id="in-forecast" type="text" inputmode="decimal"></div>
-    <div class="row"><label for="in-threshold">Threshold</label><input id="in-threshold" type="text" inputmode="decimal"></div>
-    <div class="row"><label for="in-market">Market ¢</label><input id="in-market" type="text" inputmode="decimal" placeholder="—"></div>
-  </form>
+  <section class="decide" aria-label="Decision inputs">
+    <div class="d-row">
+      <label for="in-threshold">Threshold <small>K</small></label>
+      <div class="stepper">
+        <button type="button" class="step" data-for="in-threshold" data-step="-5" aria-label="Threshold down 5K">−5</button>
+        <input id="in-threshold" type="text" inputmode="decimal">
+        <button type="button" class="step" data-for="in-threshold" data-step="5" aria-label="Threshold up 5K">+5</button>
+      </div>
+    </div>
+    <div class="d-row">
+      <label for="in-market">Market YES <small>¢</small></label>
+      <div class="stepper">
+        <button type="button" class="step" data-for="in-market" data-step="-1" aria-label="Market price down 1 cent">−1</button>
+        <input id="in-market" type="text" inputmode="decimal" placeholder="—">
+        <button type="button" class="step" data-for="in-market" data-step="1" aria-label="Market price up 1 cent">+1</button>
+      </div>
+    </div>
+  </section>
 
-  <p id="verdict" class="verdict"></p>
+  <div id="verdict" class="verdict" role="status">
+    <span class="v-tag" id="v-tag"></span>
+    <span class="v-big" id="v-big"></span>
+    <span class="v-sub" id="v-sub"></span>
+  </div>
 
   <div id="prices"></div>
 
@@ -36,15 +60,23 @@
     <div id="chart-ladder"></div>
   </div>
 
-  <button id="edge-toggle" class="toggle" type="button">Show edge by threshold</button>
+  <button id="edge-toggle" class="toggle" type="button" aria-expanded="false">Edge by threshold ▾</button>
   <div id="chart-edge-wrap" hidden>
     <div id="chart-edge"></div>
   </div>
 
-  <p class="fine">P(over T) = Φ((center − T)/spread). No-change: spread 13.0K.
-  Consensus blend (50% tilt): 12.4K. Forecast blend (90% tilt): 12.0K.
-  Challenger spreads provisional. All models missed every 15K+ move in the
-  test sample — a market pricing a big move knows something this doesn't.</p>
+  <details class="weekly">
+    <summary><span>Weekly data</span><span id="weekly-vals" class="weekly-vals"></span></summary>
+    <div class="row"><label for="in-anchor">Last print <small>K</small></label><input id="in-anchor" type="text" inputmode="decimal"></div>
+    <div class="row"><label for="in-consensus">Consensus <small>K</small></label><input id="in-consensus" type="text" inputmode="decimal"></div>
+    <div class="row"><label for="in-forecast">TE forecast <small>K</small></label><input id="in-forecast" type="text" inputmode="decimal"></div>
+  </details>
+
+  <div class="fine">
+    <p><b>Model</b> P(over T) = Φ((center − T) / spread)</p>
+    <p><b>Spreads</b> no-change 13.0K · consensus blend 12.4K (50% tilt) · forecast blend 12.0K (90% tilt)</p>
+    <p><b>Caution</b> all models missed every 15K+ move in the test sample. A market pricing a big move knows something this card doesn't.</p>
+  </div>
 </main>
 
 <script src="app.js"></script>

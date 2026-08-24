@@ -41,10 +41,11 @@ function erf(x0) {
 }
 const Phi = z => 0.5*(1+erf(z/Math.SQRT2));
 
+// Colors resolve through CSS variables so charts adapt to dark mode.
 const MODELS = [
-  { name:"No-change", hex:"#2f6df6", center:(A,C,F)=>A, sd:13.0 },
-  { name:"Consensus blend", hex:"#e8862e", center:(A,C,F)=>A+0.5*(C-A), sd:12.4 },
-  { name:"Forecast blend", hex:"#1f9d55", center:(A,C,F)=>A+0.9*(F-A), sd:12.0 },
+  { name:"No-change", hex:"var(--blue)", center:(A,C,F)=>A, sd:13.0 },
+  { name:"Consensus blend", hex:"var(--orange)", center:(A,C,F)=>A+0.5*(C-A), sd:12.4 },
+  { name:"Forecast blend", hex:"var(--green)", center:(A,C,F)=>A+0.9*(F-A), sd:12.0 },
 ];
 const pge = (c,T,sd) => Phi((c-T)/sd);
 
@@ -64,8 +65,7 @@ function start() {
       if (d.consensus != null) els["in-consensus"].value = d.consensus;
       if (d.forecast != null) els["in-forecast"].value = d.forecast;
       if (d.threshold != null) els["in-threshold"].value = d.threshold;
-      const el = document.getElementById("as-of");
-      if (d.fetched_at) el.textContent = "values as of " + d.fetched_at;
+      if (d.fetched_at) document.getElementById("as-of").textContent = "as of " + d.fetched_at;
       recalc();
     })
     .catch(() => {
@@ -78,11 +78,26 @@ function start() {
       recalc();
     });
   for (const el of Object.values(els)) el.addEventListener("input", recalc);
+
+  // Steppers: tap targets for threshold (5K) and market price (1 cent).
+  for (const btn of document.querySelectorAll(".step")) {
+    btn.addEventListener("click", () => {
+      const el = els[btn.dataset.for];
+      const step = parseFloat(btn.dataset.step);
+      const cur = parseFloat(el.value);
+      let next = (isFinite(cur) ? cur : (btn.dataset.for === "in-market" ? 50 : 0)) + step;
+      if (btn.dataset.for === "in-market") next = Math.min(99, Math.max(1, next));
+      el.value = next;
+      recalc();
+    });
+  }
+
   const t = document.getElementById("edge-toggle");
   t.addEventListener("click", () => {
     const w = document.getElementById("chart-edge-wrap");
     w.hidden = !w.hidden;
-    t.textContent = w.hidden ? "Show edge by threshold" : "Hide edge by threshold";
+    t.setAttribute("aria-expanded", String(!w.hidden));
+    t.textContent = w.hidden ? "Edge by threshold ▾" : "Edge by threshold ▴";
   });
 }
 
@@ -91,12 +106,19 @@ function num(id, dflt) {
   return isFinite(v) ? v : dflt;
 }
 
+function fmtK(x) { return isFinite(x) ? Math.round(x) + "K" : "—"; }
+
 function recalc() {
   const A = num("in-anchor", NaN);
   const C = num("in-consensus", A);
   const F = num("in-forecast", A);
   const T = num("in-threshold", NaN);
   const M = num("in-market", NaN);
+
+  // Weekly summary line (visible while <details> is closed).
+  document.getElementById("weekly-vals").textContent =
+    `last ${fmtK(A)} · cons ${fmtK(C)} · fcst ${fmtK(F)}`;
+
   if (!isFinite(A) || !isFinite(T)) return;
   const models = MODELS.map(m => ({...m, c: m.center(A,C,F), p: pge(m.center(A,C,F), T, m.sd)}));
   const best = Math.max(...models.map(m=>m.p));
@@ -106,14 +128,31 @@ function recalc() {
 
   // Verdict
   const v = document.getElementById("verdict");
-  v.className = "verdict";
+  const vTag = document.getElementById("v-tag");
+  const vBig = document.getElementById("v-big");
+  const vSub = document.getElementById("v-sub");
+  v.className = "verdict show";
   if (hasM) {
     const lo = c(worst), hi = c(best), mk = Math.round(M);
-    if (lo > mk) { v.textContent = `Market ${mk}¢ is ${lo-mk} to ${hi-mk}¢ cheap on YES.`; v.classList.add("pos"); }
-    else if (hi < mk) { v.textContent = `Market ${mk}¢ is ${mk-hi} to ${mk-lo}¢ rich on YES.`; v.classList.add("neg"); }
-    else { v.textContent = `Market ${mk}¢ sits inside the model range ${lo}–${hi}¢. No edge.`; }
+    if (lo > mk) {
+      v.classList.add("pos");
+      vTag.textContent = "YES CHEAP";
+      vBig.textContent = `+${lo-mk} to +${hi-mk}¢`;
+      vSub.textContent = `Models price ${lo}–${hi}¢ vs market ${mk}¢ at ${Math.round(T)}K.`;
+    } else if (hi < mk) {
+      v.classList.add("neg");
+      vTag.textContent = "YES RICH";
+      vBig.textContent = `−${mk-hi} to −${mk-lo}¢`;
+      vSub.textContent = `Models price ${lo}–${hi}¢ vs market ${mk}¢ at ${Math.round(T)}K.`;
+    } else {
+      vTag.textContent = "NO EDGE";
+      vBig.textContent = `${lo}–${hi}¢`;
+      vSub.textContent = `Market ${mk}¢ sits inside the model range at ${Math.round(T)}K.`;
+    }
   } else {
-    v.textContent = `Fair prices at ${Math.round(T)}K: ${c(models[0].p)}, ${c(models[1].p)}, ${c(models[2].p)}¢.`;
+    vTag.textContent = "FAIR VALUE";
+    vBig.textContent = `${c(worst)}–${c(best)}¢`;
+    vSub.textContent = `Model range for P(claims ≥ ${Math.round(T)}K). Enter market price for edge.`;
   }
 
   // Prices list
@@ -140,24 +179,27 @@ const W = 360;
 function svg(h, inner) { return `<svg viewBox="0 0 ${W} ${h}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`; }
 
 function drawLadder(models, T, mkt, Tr) {
-  const h = 150, padL = 4, padR = 62, barH = 30, gap = 14;
+  const padL = 2, padR = 44, rowH = 44, barH = 14;
   const bw = W - padL - padR;
+  const h = 14 + models.length*rowH + 18;
   let g = "";
   models.forEach((m, i) => {
-    const y = 8 + i*(barH+gap);
+    const yTop = 14 + i*rowH;         // label baseline
+    const yBar = yTop + 6;            // bar top
     const w = Math.max(3, m.p*bw);
-    g += `<rect x="${padL}" y="${y}" width="${bw}" height="${barH}" rx="5" fill="#f2f2f2"/>`;
-    g += `<rect x="${padL}" y="${y}" width="${w}" height="${barH}" rx="5" fill="${m.hex}"/>`;
-    g += `<text x="${padL+10}" y="${y+20}" font-size="12" fill="#fff" font-weight="600">${m.name}</text>`;
-    g += `<text x="${padL+bw+8}" y="${y+21}" font-size="15" font-weight="600" fill="${m.hex}">${Math.round(m.p*100)}¢</text>`;
+    g += `<text x="${padL}" y="${yTop}" font-size="12" fill="var(--ink-2)" font-weight="600">${m.name}</text>`;
+    g += `<rect x="${padL}" y="${yBar}" width="${bw}" height="${barH}" rx="7" fill="var(--chart-track)"/>`;
+    g += `<rect x="${padL}" y="${yBar}" width="${w}" height="${barH}" rx="7" fill="${m.hex}"/>`;
+    g += `<text x="${padL+bw+6}" y="${yBar+12}" font-size="14" font-weight="600" fill="${m.hex}" font-variant="tabular-nums">${Math.round(m.p*100)}¢</text>`;
   });
   if (mkt !== null) {
     const x = padL + mkt*bw;
-    const y0 = 2, y1 = 8 + 3*(barH+gap) - gap + 6;
-    g += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y1}" stroke="#111" stroke-width="2" stroke-dasharray="5 4"/>`;
-    g += `<text x="${Math.min(x+5, W-58)}" y="${y1+13}" font-size="11" fill="#111" font-weight="600">market ${Math.round(mkt*100)}¢</text>`;
+    const y0 = 4, y1 = 14 + models.length*rowH - rowH + barH + 10;
+    g += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y1}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="4 3"/>`;
+    const tx = Math.max(padL + 30, Math.min(x, W - 60));
+    g += `<text x="${tx}" y="${y1+13}" text-anchor="middle" font-size="11" fill="var(--ink)" font-weight="600">mkt ${Math.round(mkt*100)}¢</text>`;
   }
-  g += `<text x="${W/2}" y="${h-2}" text-anchor="middle" class="ax">P(claims ≥ ${Tr}K)</text>`;
+  g += `<text x="${W/2}" y="${h-2}" text-anchor="middle" class="ax">P(claims ≥ ${Tr}K) · 0–100¢ scale</text>`;
   document.getElementById("chart-ladder").innerHTML = svg(h, g);
 }
 
@@ -178,19 +220,19 @@ function drawEdge(models, A, Tr, mkt) {
   edges.forEach(es => es.forEach(e => { mn = Math.min(mn, e); mx = Math.max(mx, e); }));
   const scale = Math.max(Math.abs(mn), Math.abs(mx), 0.02) * 1.2;
   const Y = e => pt + ih/2 - (e/scale)*(ih/2);
-  let g = `<line x1="${pl}" y1="${Y(0)}" x2="${W-pr}" y2="${Y(0)}" stroke="#111" stroke-width="1" opacity="0.55"/>`;
+  let g = `<line x1="${pl}" y1="${Y(0)}" x2="${W-pr}" y2="${Y(0)}" stroke="var(--ink)" stroke-width="1" opacity="0.55"/>`;
   for (let t = lo; t <= hi; t += 4) {
-    g += `<line x1="${X(t)}" y1="${pt}" x2="${X(t)}" y2="${h-pb}" stroke="#eee"/>`;
+    g += `<line x1="${X(t)}" y1="${pt}" x2="${X(t)}" y2="${h-pb}" stroke="var(--line)"/>`;
     g += `<text x="${X(t)}" y="${h-pb+14}" text-anchor="middle" class="ax">${t}K</text>`;
   }
   MODELS.forEach((m, i) => {
     const pts = ts.map((t, j) => `${X(t).toFixed(1)},${Y(edges[i][j]).toFixed(1)}`).join(" ");
     g += `<polyline points="${pts}" fill="none" stroke="${m.hex}" stroke-width="2"/>`;
   });
-  g += `<line x1="${X(Tr)}" y1="${pt}" x2="${X(Tr)}" y2="${h-pb}" stroke="#888" stroke-dasharray="3 3"/>`;
+  g += `<line x1="${X(Tr)}" y1="${pt}" x2="${X(Tr)}" y2="${h-pb}" stroke="var(--ink-3)" stroke-dasharray="3 3"/>`;
   g += `<text x="${W-pr}" y="${pt-3}" text-anchor="end" class="ax">+${Math.round(scale*100)}¢</text>`;
   g += `<text x="${W-pr}" y="${h-pb+13}" text-anchor="end" class="ax">−${Math.round(scale*100)}¢</text>`;
-  document.getElementById("chart-edge").innerHTML = svg(h, g);
+  wrap.innerHTML = svg(h, g);
 }
 
 if (sessionStorage.getItem("cc_ok") === "1") { gate.hidden = true; app.hidden = false; start(); }
