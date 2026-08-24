@@ -36,10 +36,47 @@ def latest_icsa() -> int | None:
         return None
 
 
+def _parse_te_html(html: str):
+    txt = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", "~", html))
+    flat = re.sub(r"[~\s]+", "~", txt)
+    pat = re.compile(r"(\d{4}-\d{2}-\d{2})~\d{2}:\d{2}~PM~Initial~Jobless~Claims~"
+                     r"([A-Z][a-z]{2}/\d{2})~([\d,\.]+)K~([\d,\.]+)K~([\d,\.]+)K~")
+    return pat.findall(flat)
+
+
+def _te_rows_to_values(rows):
+    """rows: (release, refweek, actual, forecast, consensus). Returns (cons, fc, anchor).
+    Anchor = actual of the most recent RELEASED row only. Pending (future-dated)
+    rows contribute consensus/forecast; their 'actual' is a placeholder and is ignored."""
+    today = datetime.now(timezone.utc).date().isoformat()
+    cons = fc = None
+    anchor = None
+    for rel, rw, actual, fcv, consv in rows:
+        if rel > today:
+            if cons is None:
+                cons, fc = float(consv), float(fcv)
+        else:
+            anchor = int(float(actual))  # last released actual
+    return cons, fc, anchor
+
+
+def latest_te_live() -> tuple[float | None, float | None, int | None]:
+    """Live TE page first (freshest consensus/forecast); wayback archive as fallback."""
+    try:
+        req = urllib.request.Request(
+            "https://tradingeconomics.com/united-states/jobless-claims", headers=UA)
+        with urllib.request.urlopen(req, timeout=60) as r:
+            html = r.read().decode("utf-8", "ignore")
+        rows = _parse_te_html(html)
+        if rows:
+            return _te_rows_to_values(rows)
+    except Exception as e:
+        print("live TE fetch failed:", e)
+    return None, None, None
+
+
 def latest_te() -> tuple[float | None, float | None, int | None]:
-    """Anchor + consensus + forecast from the newest TE snapshot in fetched-data.
-    The anchor (latest actual print) is the most recent RELEASED row; the pending
-    week's consensus/forecast come from the future-dated row."""
+    """Fallback: newest TE snapshot in fetched-data."""
     try:
         out = subprocess.run(
             ["git", "ls-remote", "origin", "refs/heads/fetched-data"],
@@ -84,9 +121,14 @@ def latest_te() -> tuple[float | None, float | None, int | None]:
 
 
 def main() -> int:
-    cons, fc, anchor = latest_te()
+    cons, fc, anchor = latest_te_live()
+    if cons is None or anchor is None:
+        c2, f2, a2 = latest_te()
+        cons = cons if cons is not None else c2
+        fc = fc if fc is not None else f2
+        anchor = anchor if anchor is not None else a2
     if anchor is None:
-        anchor = latest_icsa()  # fallback
+        anchor = latest_icsa()  # last resort
     data = {
         "anchor": anchor,
         "consensus": cons,

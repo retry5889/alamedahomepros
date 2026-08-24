@@ -1,9 +1,9 @@
-name: Claims Card prefill (weekly)
+name: Claims Card prefill (daily into release)
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '43 13 * * 3'  # Wednesdays 13:43 UTC (after signals-v2 capture, before Thursday release)
+    - cron: '43 13 * * 1-4'  # Mon-Thu 13:43 UTC (fresh consensus/forecast daily into release week)
 
 concurrency:
   group: card-prefill
