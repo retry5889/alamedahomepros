@@ -43,6 +43,7 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+[hidden] { display: none !important; }
 html { -webkit-text-size-adjust: 100%; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
@@ -59,7 +60,7 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 
 /* Gate */
 #gate {
-  min-height: 80vh;
+  min-height: 78vh;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -266,7 +267,7 @@ h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.2px; }
 
 /* Charts */
 .chart-card {
-  margin-top: 14px;
+  margin-top: 10px;
   padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -284,6 +285,6 @@ h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.2px; }
 .ax { font-size: 10px; fill: var(--ink-3); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; }
 
 /* Fine print */
-.fine { margin-top: 16px; font-size: 12px; color: var(--ink-3); line-height: 1.45; }
+.fine { margin-top: 12px; font-size: 12px; color: var(--ink-3); line-height: 1.45; }
 .fine p { margin-bottom: 5px; }
 .fine b { color: var(--ink-2); font-weight: 600; }

@@ -15,14 +15,24 @@ const codeBtn = document.getElementById("code-submit");
 const gateErr = document.getElementById("gate-error");
 const lockBtn = document.getElementById("btn-lock");
 
-function unlock() {
-  sessionStorage.setItem("cc_ok", "1");
-  gate.hidden = true;
-  app.hidden = false;
+function toTop() {
   window.scrollTo(0, 0);
   document.body.scrollTop = 0;
   document.documentElement.scrollTop = 0;
+}
+
+function unlock() {
+  sessionStorage.setItem("cc_ok", "1");
+  codeInput.blur();               // dismiss the iOS keyboard first
+  gate.hidden = true;
+  app.hidden = false;
   start();
+  toTop();
+  // iOS restores/adjusts scroll while the keyboard animates away; reset again
+  // after the viewport settles.
+  if (window.requestAnimationFrame) requestAnimationFrame(toTop);
+  setTimeout(toTop, 120);
+  setTimeout(toTop, 400);
 }
 
 function lock() {
@@ -31,7 +41,7 @@ function lock() {
   gate.hidden = false;
   codeInput.value = "";
   gateErr.hidden = true;
-  window.scrollTo(0, 0);
+  toTop();
   codeInput.focus();
 }
 
