@@ -54,16 +54,16 @@
 
     <div class="baselines" aria-label="Weekly baselines">
       <div class="b-col">
-        <label for="in-anchor">Last <small>K</small></label>
+        <label for="in-anchor">Last print <small>K</small></label>
         <input id="in-anchor" type="text" inputmode="decimal">
       </div>
       <div class="b-col">
-        <label for="in-consensus">Cons <small>K</small></label>
-        <input id="in-consensus" type="text" inputmode="decimal">
+        <label for="in-consensus">Consensus <small>K</small></label>
+        <input id="in-consensus" type="text" inputmode="decimal" placeholder="—">
       </div>
       <div class="b-col">
-        <label for="in-forecast">Fcst <small>K</small></label>
-        <input id="in-forecast" type="text" inputmode="decimal">
+        <label for="in-forecast">Forecast <small>K</small></label>
+        <input id="in-forecast" type="text" inputmode="decimal" placeholder="—">
       </div>
     </div>
   </section>
@@ -74,23 +74,34 @@
     <span class="v-sub" id="v-sub"></span>
   </div>
 
-  <div id="prices"></div>
+  <section class="models-card" aria-label="Model fair prices">
+    <div id="models"></div>
+    <div id="m-cap" class="m-cap"></div>
+  </section>
 
-  <div class="chart-card">
-    <div class="chart-hdr">Probability Ladder</div>
-    <div id="chart-ladder"></div>
-  </div>
+  <section class="chart-card" aria-label="Distribution view">
+    <div class="chart-hdr">Why this price · <span id="dist-model"></span></div>
+    <div id="chart-dist"></div>
+    <p id="dist-note" class="dist-note"></p>
+  </section>
 
-  <div class="chart-card">
-    <div class="chart-hdr">Edge Across Thresholds</div>
+  <section class="chart-card" aria-label="Threshold sensitivity">
+    <div class="chart-hdr" id="edge-hdr">Fair price across thresholds</div>
+    <div id="edge-legend" class="legend"></div>
     <div id="chart-edge"></div>
-  </div>
+  </section>
 
-  <div class="fine">
-    <p><b>Model</b> P(over T) = Φ((center − T) / spread)</p>
-    <p><b>Spreads</b> no-change 13.0K · consensus blend 12.4K (50% tilt) · forecast blend 12.0K (90% tilt)</p>
-    <p><b>Caution</b> all models missed every 15K+ move in the test sample. A market pricing a big move knows something this card doesn't.</p>
-  </div>
+  <details class="howto">
+    <summary>How to read this card</summary>
+    <div class="howto-body">
+      <p><b>The market.</b> A Kalshi YES contract pays $1 if weekly initial claims come in at or above the threshold. Its fair price in cents equals the probability of that happening.</p>
+      <p><b>The models.</b> Each turns a view of this week's print into that probability: P(claims ≥ T) = Φ((center − T) ÷ σ). No-change repeats last week's print (σ 13.0K). Consensus blend moves halfway to the economist consensus (σ 12.4K). Forecast blend moves 90% of the way to the in-house forecast (σ 12.0K). A model only participates when its input is filled in; the card never invents a consensus or forecast.</p>
+      <p><b>The bars.</b> Each bar is a model's fair YES price on a 0–100¢ track. The faint mark is 50¢; the dark tick is the market price. Fill reaching past the tick means that model calls YES cheap.</p>
+      <p><b>The bell.</b> The curve shows where the selected model expects the print to land. The shaded slice at or above the threshold is the fair YES price, literally the share of outcomes that pay out. Tap a model row to switch curves and watch the shaded area move.</p>
+      <p><b>Fees.</b> Kalshi charges roughly 7¢ × price × (1 − price) per contract, worst near 50¢. Edges under about 2¢ rarely survive it, so the verdict shows net-of-fee too.</p>
+      <p><b>Caution.</b> These models missed every 15K+ weekly move in the test sample. If the market prices a big move, it may know something this card doesn't.</p>
+    </div>
+  </details>
 </main>
 
 <script src="app.js"></script>
