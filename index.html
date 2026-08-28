@@ -6,8 +6,8 @@
 <meta name="robots" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#101114" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f0f1f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0c0e10" media="(prefers-color-scheme: dark)">
 <title>Claims Card</title>
 <link rel="stylesheet" href="app.css">
 </head>
@@ -99,8 +99,8 @@
     <summary>Reference</summary>
     <div class="howto-body">
       <p><b>Market.</b> YES pays $1 if claims ≥ threshold. Fair price = probability.</p>
-      <p><b>Models.</b> P(≥T) = Φ((center−T)/σ). No-change σ13.0K. Consensus σ12.4K. Forecast σ12.0K.</p>
-      <p><b>Fees.</b> Taker: 1.75%·p·(1−p) per contract, max 0.44¢ at 50¢. Limit: taker × 0.25.</p>
+      <p><b>Models.</b> <code>P(≥T) = Φ((center−T)/σ)</code>. No-change σ13.0K. Consensus σ12.4K. Forecast σ12.0K.</p>
+      <p><b>Fees.</b> Taker: <code>1.75%·p·(1−p)</code> per contract, max 0.44¢ at 50¢. Limit: taker × 0.25.</p>
       <p><b>Caution.</b> Models missed every 15K+ move in the test sample.</p>
     </div>
   </details>

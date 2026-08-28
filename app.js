@@ -385,71 +385,65 @@ function drawDist(cur, m) {
   document.getElementById("dist-model").textContent = m.name + " · σ " + m.sd.toFixed(1) + "K";
 }
 
-// Edge waterfall: model price bar decomposed into market + fee + net edge.
+// Edge view: zoomed strip around the market price, 1¢ ticks, fee bites shown.
 function drawEV(cur, m) {
   const wrap = document.getElementById("chart-ev");
   if (cur.mkt === null || !m.has) {
-    wrap.innerHTML = `<div class="ev-empty">Enter market YES ¢</div>`;
+    wrap.innerHTML = `<div class="ev-empty">enter market YES ¢</div>`;
     return;
   }
-  const p = m.p;               // model fair price
-  const mkt = cur.mkt;         // market price
-  const tk = feeTaker(mkt);
-  const mkf = feeMaker(mkt);
-  const edge = p - mkt;        // raw edge (positive = model says cheap)
-  const netT = edge - tk;
-  const netM = edge - mkf;
+  const p = m.p, mkt = cur.mkt;
+  const tk = feeTaker(mkt), mkf = feeMaker(mkt);
+  const edge = p - mkt;
+  const netT = edge - tk, netM = edge - mkf;
 
-  const h = 100, pl = 8, pr = 8, pt = 20, pb = 8;
+  // Window: center on market, wide enough to show model + fee + margin.
+  const halfW = Math.max(Math.abs(edge) + tk + 0.015, 0.03);
+  const lo = mkt - halfW, hi = mkt + halfW;
+  const h = 118, pl = 8, pr = 8, pt = 16, pb = 20;
   const iw = W - pl - pr;
-  const barH = 14;
-  const y1 = pt, y2 = pt + barH + 18;
-
-  // Scale: 0 to max(p, mkt) + a bit
-  const scale = Math.max(p, mkt, 0.01) * 1.15;
-  const X = v => pl + (v / scale) * iw;
+  const X = v => pl + (v - lo) / (hi - lo) * iw;
+  const barH = 16, gap = 22;
+  const rows = [
+    { lbl: "raw",   e: edge, fee: 0 },
+    { lbl: "taker", e: edge, fee: tk },
+    { lbl: "limit", e: edge, fee: mkf },
+  ];
 
   let g = "";
-
-  // Row 1: raw edge bar
-  g += `<text x="${pl}" y="${y1-4}" class="ax">raw</text>`;
-  g += `<rect x="${X(0)}" y="${y1}" width="${X(mkt)-X(0)}" height="${barH}" rx="3" fill="var(--chart-track)"/>`;
-  if (edge > 0) {
-    g += `<rect x="${X(mkt)}" y="${y1}" width="${X(p)-X(mkt)}" height="${barH}" rx="3" fill="var(--pos)" opacity="0.8"/>`;
-  } else {
-    g += `<rect x="${X(p)}" y="${y1}" width="${X(mkt)-X(p)}" height="${barH}" rx="3" fill="var(--neg)" opacity="0.8"/>`;
+  // 1¢ gridlines
+  const c0 = Math.ceil(lo * 100), c1 = Math.floor(hi * 100);
+  for (let cc = c0; cc <= c1; cc++) {
+    const x = X(cc / 100);
+    g += `<line x1="${x}" y1="${pt - 6}" x2="${x}" y2="${h - pb}" stroke="var(--line)" stroke-width="0.5"/>`;
+    g += `<text x="${x}" y="${h - pb + 12}" text-anchor="middle" class="ax">${cc}</text>`;
   }
-  g += `<text x="${X(Math.max(p,mkt))+4}" y="${y1+11}" class="ax">${edge>0?"+":""}${Math.round(edge*100)}¢</text>`;
+  // Market line
+  g += `<line x1="${X(mkt)}" y1="${pt - 6}" x2="${X(mkt)}" y2="${h - pb}" stroke="var(--ink)" stroke-width="1.5"/>`;
+  g += `<text x="${X(mkt)}" y="${pt - 8}" text-anchor="middle" class="ax" font-weight="700">mkt ${Math.round(mkt*100)}¢</text>`;
 
-  // Row 2: after taker fee
-  g += `<text x="${pl}" y="${y2-4}" class="ax">taker</text>`;
-  g += `<rect x="${X(0)}" y="${y2}" width="${X(mkt)-X(0)}" height="${barH}" rx="3" fill="var(--chart-track)"/>`;
-  if (edge > 0) {
-    // fee eats into the green
-    const feeEnd = Math.min(p, mkt + tk);
-    const netEnd = mkt + edge - tk;
-    if (tk > 0) g += `<rect x="${X(mkt)}" y="${y2}" width="${X(feeEnd)-X(mkt)}" height="${barH}" rx="3" fill="var(--neg)" opacity="0.5"/>`;
-    if (netT > 0) g += `<rect x="${X(feeEnd)}" y="${y2}" width="${X(netEnd)-X(feeEnd)}" height="${barH}" rx="3" fill="var(--pos)" opacity="0.8"/>`;
-  } else {
-    g += `<rect x="${X(p)}" y="${y2}" width="${X(mkt)-X(p)}" height="${barH}" rx="3" fill="var(--neg)" opacity="0.8"/>`;
-  }
-  g += `<text x="${X(Math.max(p,mkt))+4}" y="${y2+11}" class="ax">${netT>0?"+":""}${Math.round(netT*100)}¢</text>`;
+  rows.forEach((r, i) => {
+    const y = pt + i * (barH + gap);
+    // base track
+    g += `<rect x="${X(lo)}" y="${y}" width="${iw}" height="${barH}" rx="2" fill="var(--track)"/>`;
+    // edge fill
+    if (r.e > 0) {
+      const feeEnd = Math.min(p, mkt + r.fee);
+      const netEnd = mkt + r.e - r.fee;
+      if (r.fee > 0.001) g += `<rect x="${X(mkt)}" y="${y}" width="${X(feeEnd)-X(mkt)}" height="${barH}" rx="2" fill="var(--neg)" opacity="0.55"/>`;
+      if (netEnd > feeEnd) g += `<rect x="${X(feeEnd)}" y="${y}" width="${X(netEnd)-X(feeEnd)}" height="${barH}" rx="2" fill="var(--pos)"/>`;
+    } else if (r.e < 0) {
+      g += `<rect x="${X(p)}" y="${y}" width="${X(mkt)-X(p)}" height="${barH}" rx="2" fill="var(--neg)"/>`;
+    }
+    // model price marker
+    g += `<line x1="${X(p)}" y1="${y-2}" x2="${X(p)}" y2="${y+barH+2}" stroke="${m.hex}" stroke-width="2"/>`;
+    // label
+    const net = r.e - r.fee;
+    g += `<text x="${X(lo)+2}" y="${y-3}" class="ax">${r.lbl}</text>`;
+    g += `<text x="${X(hi)-2}" y="${y+11}" text-anchor="end" class="ax" font-weight="700" fill="${net>0?"var(--pos)":net<0?"var(--neg)":"var(--ink-3)"}">${net>0?"+":""}${net.toFixed(2)}¢</text>`;
+  });
 
-  // Row 3: after limit fee
-  const y3 = y2 + barH + 18;
-  g += `<text x="${pl}" y="${y3-4}" class="ax">limit</text>`;
-  g += `<rect x="${X(0)}" y="${y3}" width="${X(mkt)-X(0)}" height="${barH}" rx="3" fill="var(--chart-track)"/>`;
-  if (edge > 0) {
-    const feeEndM = Math.min(p, mkt + mkf);
-    const netEndM = mkt + edge - mkf;
-    if (mkf > 0) g += `<rect x="${X(mkt)}" y="${y3}" width="${X(feeEndM)-X(mkt)}" height="${barH}" rx="3" fill="var(--neg)" opacity="0.5"/>`;
-    if (netM > 0) g += `<rect x="${X(feeEndM)}" y="${y3}" width="${X(netEndM)-X(feeEndM)}" height="${barH}" rx="3" fill="var(--pos)" opacity="0.8"/>`;
-  } else {
-    g += `<rect x="${X(p)}" y="${y3}" width="${X(mkt)-X(p)}" height="${barH}" rx="3" fill="var(--neg)" opacity="0.8"/>`;
-  }
-  g += `<text x="${X(Math.max(p,mkt))+4}" y="${y3+11}" class="ax">${netM>0?"+":""}${Math.round(netM*100)}¢</text>`;
-
-  wrap.innerHTML = svg(y3 + barH + pb, g);
+  wrap.innerHTML = svg(h, g);
 }
 
 function drawEdge(models, A, Tr, mkt) {
