@@ -23,7 +23,7 @@ function toTop() {
 
 function unlock() {
   sessionStorage.setItem("cc_ok", "1");
-  codeInput.blur();               // dismiss the iOS keyboard first
+  codeInput.blur();
   gate.hidden = true;
   app.hidden = false;
   start();
@@ -89,7 +89,6 @@ const verdict = document.getElementById("verdict");
 verdict.setAttribute("aria-live", "polite");
 let started = false;
 let cur = null;
-let zChipsOn = false;
 
 function start() {
   if (started) return;
@@ -127,7 +126,7 @@ function start() {
     });
   }
 
-  // σ chips: nudge threshold by ±amount to teach tail-area intuition.
+  // σ chips: nudge threshold by the model's σ multiples to teach tail-area intuition.
   for (const chip of document.querySelectorAll(".z-chip")) {
     chip.addEventListener("click", () => {
       const tnum = num("in-threshold");
@@ -150,7 +149,6 @@ function num(id) {
   return isFinite(v) ? v : null;
 }
 
-// refreshSel=true recomputes focus (most-informed model); false keeps user's row-choice.
 function recalc(refreshSel) {
   const A = num("in-anchor");
   const C = num("in-consensus");
@@ -160,6 +158,7 @@ function recalc(refreshSel) {
   if (A === null || T === null) {
     cur = null;
     verdict.className = "verdict";
+    document.getElementById("v-tag").textContent = "";
     document.getElementById("v-big").textContent = "Need a last-print value";
     document.getElementById("v-sub").textContent = "";
     document.getElementById("models").innerHTML = "";
@@ -169,6 +168,7 @@ function recalc(refreshSel) {
     document.getElementById("fee-note").textContent = "";
     document.getElementById("edge-legend").innerHTML = "";
     document.getElementById("chart-edge").innerHTML = "";
+    updateFeePanel(null, null);
     return;
   }
   const mkt = M === null ? null : M / 100;
@@ -184,6 +184,29 @@ function recalc(refreshSel) {
   const focus = keepSel ? cur.sel : models.filter(m => m.has).pop().idx;
   cur = { A, C, F, T, M, mkt, models, lo, hi, sel: focus };
   render(cur);
+}
+
+function updateFeePanel(mkt, edgeBest) {
+  const bar = document.getElementById("fee-bar");
+  const cap = document.getElementById("fee-cap");
+  const tkEl = document.getElementById("fee-taker");
+  const mkEl = document.getElementById("fee-maker");
+  if (mkt === null) {
+    tkEl.textContent = "—";
+    mkEl.textContent = "—";
+    bar.style.width = "0%";
+    cap.textContent = "enter market ¢";
+    return;
+  }
+  const tk = feeTaker(mkt), mk = feeMaker(mkt);
+  tkEl.textContent = fmtC(tk) + " (" + Math.max(25, Math.round(mkt*100)) + "¢ price)";
+  mkEl.textContent = fmtC(mk);
+  const ratio = edgeBest && edgeBest > 0 ? Math.min(1, tk / edgeBest) : 1;
+  bar.style.width = Math.round(ratio*100) + "%";
+  bar.classList.toggle("ok", ratio < 0.5);
+  cap.textContent = edgeBest && edgeBest > 0 ?
+    `taker fee eats ${Math.round(tk/edgeBest*100)}% of your ${(edgeBest*100).toFixed(1)}¢ edge` :
+    "no edge to spend the fee against";
 }
 
 function render(cur) {
@@ -208,26 +231,30 @@ function render(cur) {
       v.classList.add("pos");
       vTag.textContent = "YES CHEAP";
       vBig.textContent = `+${c(edgeLo)} to +${c(edgeHi)}¢`;
-      const maker = feeMaker(mkt), mn = Math.max(0, edgeLo - maker);
-      vSub.textContent = `Models ${loC}–${hiC}¢ vs market ${mk}¢. Taker fee ${fmtC(tk)} → net +${c(nLo)}–${c(nHi)}¢; maker limit → +${c(mn)}–${c(Math.max(0, edgeHi - maker))}¢.`;
+      const maker = feeMaker(mkt);
+      const mn = Math.max(0, edgeLo - maker);
+      const mn2 = Math.max(0, edgeHi - maker);
+      vSub.textContent = `Models ${loC}–${hiC}¢ vs YES ${mk}¢. Taker fee ${fmtC(tk)} → net +${c(nLo)}–${c(nHi)}¢; maker limit → +${c(mn)}–${c(mn2)}¢.`;
+      updateFeePanel(mkt, edgeLo);
     } else if (hi < mkt) {
-      // YES rich → buy NO at 1-p. Fees are on price paid, = (1−m)r(1−(1−m))(1−m)… = same r·p(1−p).
       const noEdgeLo = mkt - hi, noEdgeHi = mkt - lo;
       const ntk = feeTaker(mkt), mnk = feeMaker(mkt);
       v.classList.add("neg");
       vTag.textContent = "YES RICH";
       vBig.textContent = `NO at ${100 - mk}¢`;
-      const tnet = Math.max(0, noEdgeLo) - ntk, mnet = Math.max(0, noEdgeLo) - mnk;
-      vSub.textContent = `Models ${loC}–${hiC}¢ vs YES ${mk}¢. NO edge +${c(noEdgeLo)}–${c(noEdgeHi)}¢ raw; taker net +${c(tnet)}–${c(Math.max(0, noEdgeHi) - ntk)}¢, maker net +${c(mnet)}–${c(Math.max(0, noEdgeHi) - mnk)}¢.`;
+      vSub.textContent = `Models ${loC}–${hiC}¢ vs YES ${mk}¢. NO edge +${c(noEdgeLo)}–${c(noEdgeHi)}¢ raw; taker net +${c(noEdgeLo - ntk)}–${c(noEdgeHi - ntk)}¢, maker net +${c(noEdgeLo - mnk)}–${c(noEdgeHi - mnk)}¢.`;
+      updateFeePanel(mkt, noEdgeLo);
     } else {
       vTag.textContent = "NO EDGE";
       vBig.textContent = `${loC}–${hiC}¢`;
-      vSub.textContent = `Market ${mk}¢ sits inside the model range at ${Tr}K. Taker fee here is ${fmtC(tk)}; you need ~1¢+ of edge to beat it.`;
+      vSub.textContent = `Market ${mk}¢ sits inside the model range at ${Tr}K. Taker fee here is ${fmtC(tk)}; you need ~1¢+ edge to beat it.`;
+      updateFeePanel(mkt, null);
     }
   } else {
     vTag.textContent = "FAIR VALUE";
     vBig.textContent = `${c(lo)}–${c(hi)}¢`;
     vSub.textContent = `Model range for P(claims ≥ ${Tr}K). Enter the market YES price to size the edge.`;
+    updateFeePanel(null, null);
   }
 
   // Model rows
@@ -305,16 +332,14 @@ function drawDist(cur, m) {
   g += `<path d="${lineP}" fill="none" stroke="${m.hex}" stroke-width="2"/>`;
   g += `<line x1="${X(cur.T)}" y1="${pt}" x2="${X(cur.T)}" y2="${h-pb}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="3 3"/>`;
 
-  // σ ticks at center, +1σ, +2σ, −1σ, −2σ
-  const sigTicks = [0, 1, 2, -1, -2].map(k => ({ v: m.c + k*m.sd, k }));
-  sigTicks.forEach(o => {
+  // σ ticks at center, ±1σ, ±2σ
+  [0, 1, 2, -1, -2].map(k => ({ v: m.c + k*m.sd, k })).forEach(o => {
     if (o.v > xLo && o.v < xHi) {
       g += `<line x1="${X(o.v)}" y1="${h-pb}" x2="${X(o.v)}" y2="${h-pb+5}" stroke="var(--ink-3)" stroke-width="1"/>`;
       g += `<text x="${X(o.v)}" y="${h-pb+13}" text-anchor="middle" class="ax">${o.k===0?"ctr":(o.k>0?"+"+o.k+"σ":o.k+"σ")}</text>`;
     }
   });
 
-  // Markers for center/consensus/forecast
   const marks = [{ x: m.c, strong: true }];
   if (cur.C !== null) marks.push({ x: cur.C });
   if (cur.F !== null) marks.push({ x: cur.F });
@@ -326,9 +351,9 @@ function drawDist(cur, m) {
   g += `<text x="${X(cur.T)}" y="${pt-3}" text-anchor="middle" class="ax">${Math.round(cur.T)}K = T</text>`;
   document.getElementById("chart-dist").innerHTML = svg(h, g);
 
-  // Sigma chips: rebuild labels with true prices for this model.
+  // σ chips: rebuild labels with true tail prices for this model.
   const chips = document.querySelectorAll(".z-chip");
-  const defs = [ {k:0.3}, {k:0.5}, {k:1}, {k:2} ];
+  const defs = [{k:0.3}, {k:0.5}, {k:1}, {k:2}];
   chips.forEach((ch, i) => {
     const k = defs[i].k;
     const dist = k * m.sd;
@@ -346,16 +371,11 @@ function drawDist(cur, m) {
     `The shaded tail at or above T is the fair YES price, ${Math.round(m.p*100)}¢.`;
   document.getElementById("dist-model").textContent = m.name + " · σ " + m.sd.toFixed(1) + "K";
 
-  // Fee note inside distribution card (concept: fee as a strip of probability width).
   if (cur.mkt !== null) {
-    const tail = Math.max(m.p - cur.mkt, 0);
-    const width = feeTaker(cur.mkt);          // in probability units
-    const kt = width / m.sd;                  // σ units
-    const ktS = (az + kt/Math.max(1e-9, 1));
-    const pAfter = Phi(az/M.EPSILON) * 0; // placeholder to avoid lint; recompute below
-    const after = Phi((az - kt)) * 100;
+    const width = feeTaker(cur.mkt);
+    const kt = width / m.sd;
     document.getElementById("fee-note").textContent =
-      `Taker fee ${fmtC(feeTaker(cur.mkt))} is about ${kt.toFixed(2)}σ of threshold at this price — T would need ${kt.toFixed(2)}σ more clearance to cover it.`;
+      `Taker fee ${fmtC(width)} is about ${kt.toFixed(2)}σ of threshold at this price — T would need ${kt.toFixed(2)}σ more clearance to cover it.`;
   } else {
     document.getElementById("fee-note").textContent = "Enter a market price to compare fees against the σ distance.";
   }
@@ -396,7 +416,6 @@ function drawEdge(models, A, Tr, mkt) {
     const Y = e => pt + ih/2 - (e/scale)*(ih/2);
     const tk = feeTaker(mkt);
     g += `<line x1="${pl}" y1="${Y(0)}" x2="${W-pr}" y2="${Y(0)}" stroke="var(--ink)" stroke-width="1" opacity="0.55"/>`;
-    // Taker fee bands: only points above +fee clear cost.
     g += `<line x1="${pl}" y1="${Y(tk)}" x2="${W-pr}" y2="${Y(tk)}" stroke="var(--blue)" stroke-dasharray="2 2" opacity="0.7"/>`;
     g += `<text x="${pl}" y="${Y(tk)+9}" class="ax">taker +${fmtC(tk)}</text>`;
     for (let t = lo; t <= hi; t += 4) {
