@@ -70,19 +70,28 @@ function erf(x0) {
   return s*y;
 }
 const Phi = z => 0.5*(1+erf(z/Math.SQRT2));
+const npdf = x => Math.exp(-x*x/2)/Math.sqrt(2*Math.PI);
 
-// Colors resolve through CSS variables so charts adapt cleanly to dark mode.
+// Kalshi taker fee on YES bought at price p (0..1): 7% x p x (1-p).
+const FEE_MIN_T = 1/8;  // threshold scale that makes fee (1-T)/4c; below this fee is 0
+const feeYes = p => p >= FEE_MIN_T ? Math.min(0.25, (1-p)/4) : 0;
+const fmtFee = f => "≈" + f.toFixed(1) + "¢";
+
 const MODELS = [
-  { name:"No-change", hex:"var(--blue)", center:(A,C,F)=>A, sd:13.0 },
-  { name:"Consensus blend", hex:"var(--orange)", center:(A,C,F)=>A+0.5*(C-A), sd:12.4 },
-  { name:"Forecast blend", hex:"var(--green)", center:(A,C,F)=>A+0.9*(F-A), sd:12.0 },
+  { name:"No-change", short:"no-change", hex:"var(--blue)", needs:"None", center:(A,C,F)=>A, sd:13.0 },
+  { name:"Consensus blend", short:"consensus blend", hex:"var(--orange)", needs:"C", center:(A,C,F)=>A+0.5*(C-A), sd:12.4 },
+  { name:"Forecast blend", short:"forecast blend", hex:"var(--green)", needs:"F", center:(A,C,F)=>A+0.9*(F-A), sd:12.0 },
 ];
 const pge = (c,T,sd) => Phi((c-T)/sd);
 
 // ---- State ----
 const FIELDS = ["in-anchor","in-consensus","in-forecast","in-threshold","in-market"];
 const els = Object.fromEntries(FIELDS.map(id => [id, document.getElementById(id)]));
+const verdict = document.getElementById("verdict");
+verdict.setAttribute("aria-live", "polite");
 let started = false;
+let cur = null;   // last rendered state, for row taps
+let lastModels = null;
 
 function start() {
   if (started) return;
@@ -114,160 +123,260 @@ function start() {
     btn.addEventListener("click", () => {
       const el = els[btn.dataset.for];
       const step = parseFloat(btn.dataset.step);
-      const cur = parseFloat(el.value);
-      let next = (isFinite(cur) ? cur : (btn.dataset.for === "in-market" ? 50 : 0)) + step;
+      const curv = parseFloat(el.value);
+      let next = (isFinite(curv) ? curv : (btn.dataset.for === "in-market" ? 50 : 0)) + step;
       if (btn.dataset.for === "in-market") next = Math.min(99, Math.max(1, next));
       el.value = next;
       recalc();
     });
   }
+
+  // Tap a model row to focus its curve in the distribution strip.
+  document.getElementById("models").addEventListener("click", e => {
+    const row = e.target.closest(".m-row");
+    if (!row || row.classList.contains("na") || !cur) return;
+    cur.sel = +row.dataset.idx;
+    render(cur);
+  });
 }
 
-function num(id, dflt) {
+function num(id) {
   const v = parseFloat(els[id].value);
-  return isFinite(v) ? v : dflt;
+  return isFinite(v) ? v : null;
 }
 
 function recalc() {
-  const A = num("in-anchor", NaN);
-  const C = num("in-consensus", A);
-  const F = num("in-forecast", A);
-  const T = num("in-threshold", NaN);
-  const M = num("in-market", NaN);
+  const A = num("in-anchor");
+  const C = num("in-consensus");
+  const F = num("in-forecast");
+  const T = num("in-threshold");
+  const M = num("in-market");
+  if (A === null || T === null) {
+    cur = null;
+    document.getElementById("verdict").className = "verdict";
+    document.getElementById("models").innerHTML = "";
+    document.getElementById("m-cap").textContent = "";
+    document.getElementById("chart-dist").innerHTML = "";
+    document.getElementById("dist-note").textContent = "";
+    document.getElementById("edge-legend").innerHTML = "";
+    document.getElementById("chart-edge").innerHTML = "";
+    return;
+  }
+  const mkt = M === null ? null : M / 100;
+  let models = MODELS.map((m, i) => {
+    const has = C === null && m.needs === "C" || F === null && m.needs === "F" ? false : true;
+    const c = has ? m.center(A, C ?? A, F ?? A) : null;
+    return { ...m, idx: i, has, c, p: has ? pge(c, T, m.sd) : null };
+  });
+  const live = models.filter(m => m.has);
+  const lo = Math.min(...live.map(m => m.p));
+  const hi = Math.max(...live.map(m => m.p));
+  // Default focus: most-informed available model (highest idx).
+  const focus = models.filter(m => m.has).pop();
+  cur = { A, C, F, T, M, mkt, models, lo, hi, sel: focus.idx };
+  render(cur);
+}
 
-  if (!isFinite(A) || !isFinite(T)) return;
-  const models = MODELS.map(m => ({...m, c: m.center(A,C,F), p: pge(m.center(A,C,F), T, m.sd)}));
-  const best = Math.max(...models.map(m=>m.p));
-  const worst = Math.min(...models.map(m=>m.p));
-  const hasM = isFinite(M);
+function render(cur) {
+  const { A, C, F, T, M, mkt, models, lo, hi, sel } = cur;
+  const hasM = mkt !== null;
   const c = x => Math.round(x*100);
+  const mk = hasM ? Math.round(M) : null;
 
-  // Verdict
+  // Verdict: raw gap in the headline, net-of-fee in the sub-line, NO-side framing
+  // when YES is rich.
   const v = document.getElementById("verdict");
   const vTag = document.getElementById("v-tag");
   const vBig = document.getElementById("v-big");
   const vSub = document.getElementById("v-sub");
-  v.className = "verdict show";
+  v.className = "verdict";
+  const Tr = Math.round(T);
   if (hasM) {
-    const lo = c(worst), hi = c(best), mk = Math.round(M);
-    if (lo > mk) {
+    const loC = c(lo), hiC = c(hi);
+    const noPrice = 100 - mk;
+    if (lo > mkt) {
+      const edgeLo = loC - mk, edgeHi = hiC - mk;
+      const fee = feeYes(Math.min(mkt, 0.99)) * 100;
+      const nLo = Math.max(0, edgeLo - fee), nHi = Math.max(0, edgeHi - fee);
       v.classList.add("pos");
       vTag.textContent = "YES CHEAP";
-      vBig.textContent = `+${lo-mk} to +${hi-mk}¢`;
-      vSub.textContent = `Models price ${lo}–${hi}¢ vs market ${mk}¢ at ${Math.round(T)}K.`;
-    } else if (hi < mk) {
+      vBig.textContent = `+${edgeLo} to +${edgeHi}¢`;
+      vSub.textContent = `Models · ${loC}–${hiC}¢ · market ${mk}¢. ` +
+        (nLo === 0 ? `Fee ${fmtFee(fee)} wipes this edge.` : `Net of ${fmtFee(fee)} fee · +${nLo}–${nHi}¢.`);
+    } else if (hi < mkt) {
+      const fee = feeYes(mkt) * 100;
       v.classList.add("neg");
       vTag.textContent = "YES RICH";
-      vBig.textContent = `−${mk-hi} to −${mk-lo}¢`;
-      vSub.textContent = `Models price ${lo}–${hi}¢ vs market ${mk}¢ at ${Math.round(T)}K.`;
+      vBig.textContent = `NO at ${noPrice}¢`;
+      vSub.textContent = `Models · ${loC}–${hiC}¢ · YES ${mk}¢. Net of ${fmtFee(fee)} fee · NO edge +${edge(mk - hiC, fee)}¢ by model.`;
     } else {
       vTag.textContent = "NO EDGE";
-      vBig.textContent = `${lo}–${hi}¢`;
-      vSub.textContent = `Market ${mk}¢ sits inside the model range at ${Math.round(T)}K.`;
+      vBig.textContent = `${loC}–${hiC}¢`;
+      vSub.textContent = `Market ${mk}¢ sits inside the model range at ${Tr}K. Fees need ~2¢+ to clear.`;
     }
   } else {
     vTag.textContent = "FAIR VALUE";
-    vBig.textContent = `${c(worst)}–${c(best)}¢`;
-    vSub.textContent = `Model range for P(claims ≥ ${Math.round(T)}K). Enter market price for edge.`;
+    vBig.textContent = `${c(lo)}–${c(hi)}¢`;
+    vSub.textContent = `Model range for P(claims ≥ ${Tr}K). Enter the market YES price to size the edge.`;
+  }
+  function edge(e, fee) {
+    const n = Math.max(0, e - fee);
+    return n === 0 ? "(fees eat it)" : `+${n}`;
   }
 
-  // Prices list
-  document.getElementById("prices").innerHTML = models.map(m => {
+  // Model rows: name, price, edge, inline bar with market tick + 50c midpoint.
+  const mSel = models[sel];
+  document.getElementById("models").innerHTML = models.map(m => {
+    const rowCls = m.has ? "m-row" + (m.idx === sel ? " sel" : "") : "m-row na";
+    const price = m.has ? `${c(m.p)}<small>¢</small>` : "—";
     let edgeHtml = "<span>—</span>";
-    if (hasM) {
-      const e = Math.round(m.p*100 - M);
+    if (m.has && hasM) {
+      const e = c(m.p) - mk;
       edgeHtml = `<span class="${e>0?"pos":e<0?"neg":""}">${e>0?"+":""}${e}¢</span>`;
     }
-    return `<div class="p-row">
-      <span class="p-dot" style="background:${m.hex}"></span>
-      <span class="p-name">${m.name}</span>
-      <span class="p-price">${c(m.p)}<small>¢</small></span>
-      <span class="p-edge">${edgeHtml}</span>
+    const barHtml = m.has ?
+      `<div class="m-bar">
+         ${hasM ? `<div class="m-tick" style="left:${Math.round(mkt*100)}%"></div>` : ""}
+         ${!hasM ? '<div class="m-mid"></div>' : ""}
+         <div class="m-fill" style="width:${Math.round(m.p*100)}%"></div>
+       </div>` : "";
+    const hint = m.has ? "" :
+      `<div class="m-hint">add ${m.needs==="C"?"consensus":"forecast"} to activate</div>`;
+    return `<div class="${rowCls}" data-idx="${m.idx}" style="--M:${m.hex}">
+      <div class="m-top">
+        <span class="m-dot"></span>
+        <span class="m-name">${m.name}</span>
+        <span class="m-price">${price}</span>
+        <span class="m-edge">${edgeHtml}</span>
+      </div>
+      ${barHtml}${hint}
     </div>`;
   }).join("");
+  document.getElementById("m-cap").textContent = hasM ?
+    "Tick · market YES. Fill past tick · that model says cheap. Tap a row for its curve." :
+    "Fair YES per model on a 0–100¢ track · white mark is 50¢. Tap a row for its curve.";
 
-  drawLadder(models, T, hasM ? M/100 : null, Math.round(T));
-  drawEdge(models, A, Math.round(T), hasM ? M/100 : null);
+  // Threshold chart: fair curves (no market) or edge curves (market given).
+  const legend = document.getElementById("edge-legend");
+  legend.innerHTML = models.filter(m => m.has).map(m =>
+    `<span class="lg"><span class="lg-dot" style="background:${m.hex}"></span>${m.name}</span>`).join("");
+  drawEdge(models.filter(m => m.has), A, Tr, mkt);
+
+  // Distribution strip for the focused model.
+  drawDist(cur, mSel);
 }
 
 // ---- Charts ----
 const W = 336;
 function svg(h, inner) { return `<svg viewBox="0 0 ${W} ${h}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`; }
 
-function drawLadder(models, T, mkt, Tr) {
-  const padL = 2, padR = 40, rowH = 38, barH = 12;
-  const bw = W - padL - padR;
-  const h = 12 + models.length*rowH + 14;
-  let g = "";
-  models.forEach((m, i) => {
-    const yTop = 12 + i*rowH;
-    const yBar = yTop + 5;
-    const w = Math.max(3, m.p*bw);
-    g += `<text x="${padL}" y="${yTop}" font-size="11" fill="var(--ink-2)" font-weight="600">${m.name}</text>`;
-    g += `<rect x="${padL}" y="${yBar}" width="${bw}" height="${barH}" rx="6" fill="var(--chart-track)"/>`;
-    g += `<rect x="${padL}" y="${yBar}" width="${w}" height="${barH}" rx="6" fill="${m.hex}"/>`;
-    g += `<text x="${padL+bw+6}" y="${yBar+10}" font-size="13" font-weight="700" fill="${m.hex}" font-variant="tabular-nums">${Math.round(m.p*100)}¢</text>`;
-  });
-  if (mkt !== null) {
-    const x = padL + mkt*bw;
-    const y0 = 2, y1 = 12 + models.length*rowH - rowH + barH + 8;
-    g += `<line x1="${x}" y1="${y0}" x2="${x}" y2="${y1}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="3 3"/>`;
-    const tx = Math.max(padL + 26, Math.min(x, W - 56));
-    g += `<text x="${tx}" y="${y1+11}" text-anchor="middle" font-size="10" fill="var(--ink)" font-weight="700">mkt ${Math.round(mkt*100)}¢</text>`;
+function drawDist(cur, m) {
+  const h = 132, pl = 8, pr = 8, pt = 10, pb = 22;
+  const iw = W - pl - pr, ih = h - pt - pb;
+  const half = 3.4;                        // window = center ± 3.4 sd
+  const span = 2*half*m.sd;
+  const xLo = m.c - span/2, xHi = m.c + span/2;
+  const X = x => pl + (x - xLo)/span*iw;
+  const Y = d => pt + ih - d*ih;           // d = normalized pdf, 0..1
+  const N = 80;
+  let path = "", fill = "";
+  const pts = [];
+  for (let i = 0; i <= N; i++) {
+    const x = xLo + span*i/N;
+    const d = npdf(Math.abs(x - m.c) / m.sd) * (x >= cur.T ? +1 : -1) / (x >= cur.T ? 1 : -1);
   }
-  g += `<text x="${W/2}" y="${h-1}" text-anchor="middle" class="ax">P(claims ≥ ${Tr}K) · 0–100¢ scale</text>`;
-  document.getElementById("chart-ladder").innerHTML = svg(h, g);
+  for (let i = 0; i <= N; i++) {
+    const x = xLo + span*i/N;
+    const d = npdf((x - m.c)/m.sd);
+    pts.push([X(x), Y(d)]);
+    if (x >= cur.T) {
+      fill += (fill ? "L" : "M") + `${X(x).toFixed(1)} ${Y(d).toFixed(1)} `;
+      if (i === 0) fill = "M" + `${X(x).toFixed(1)} ${Y(d).toFixed(1)} `;
+    }
+  }
+  // Build the shaded tail region T..xHi.
+  let fillP = `M${X(Math.max(cur.T, xLo)),Y(npdf((Math.max(cur.T,xLo)-m.c)/m.sd))}`;
+  for (let i = 0; i <= N; i++) {
+    const x = Math.max(cur.T, xLo) + (xHi - Math.max(cur.T, xLo))*i/N;
+    fillP += ` L${X(x).toFixed(1)} ${Y(npdf((x-m.c)/m.sd)).toFixed(1)}`;
+  }
+  fillP += ` L${X(xHi),Y(0)} H${X(Math.max(cur.T, xLo))} Z`;
+  const lineP = "M" + pts.map(p => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" L");
+
+  let g = "";
+  // Surplus markers drawn under the curve: last, cons, fcst, center.
+  const marks = [
+    { x: m.c, lbl: "center", cls: "ax" },
+    ...(cur.C !== null ? [{ x: cur.C, lbl: "cons", cls: "ax" }] : []),
+    ...(cur.F !== null ? [{ x: cur.F, lbl: "fcst", cls: "ax" }] : []),
+  ].filter(o => o.x > xLo && o.x < xHi);
+  g += `<path d="${fillP}" fill="${m.hex}" opacity="0.25"/>`;
+  g += `<path d="${lineP}" fill="none" stroke="${m.hex}" stroke-width="2"/>`;
+  g += `<line x1="${X(cur.T)}" y1="${pt}" x2="${X(cur.T)}" y2="${h-pb}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="3 3"/>`;
+  marks.forEach(o => {
+    const yo = npdf((o.x-m.c)/m.sd)*ih + pt;
+    g += `<circle cx="${X(o.x)}" cy="${yo}" r="2.5" fill="var(--ink-3)"/>`;
+  });
+  g += `<text x="${X(cur.T)}" y="${pt-2}" text-anchor="middle" class="ax">${Math.round(cur.T)}K (T)</text>`;
+  g += `<text x="${X(m.c)}" y="${h-pb+12}" text-anchor="middle" class="ax">${Math.round(m.c)}K · center</text>`;
+  document.getElementById("chart-dist").innerHTML = svg(h, g);
+
+  // Plain-language sigma commentary.
+  const z = (cur.T - m.c)/m.sd;
+  const az = Math.abs(z);
+  const dir = z < 0 ? "below" : "above";
+  const sense = z < 0 ? "YES is likely" : z > 0 ? "YES is unlikely" : "a coin flip";
+  document.getElementById("dist-note").textContent =
+    `Threshold sits ${az.toFixed(1)}σ ${dir} the ${m.short} center (${Math.round(m.c)}K). ` +
+    `The shaded tail, ${Math.round(m.p*100)}¢, is the share of outcomes at or above T — ${sense}.`;
+  document.getElementById("dist-model").textContent = m.name + " · σ " + m.sd.toFixed(1) + "K";
 }
 
 function drawEdge(models, A, Tr, mkt) {
   const wrap = document.getElementById("chart-edge");
+  const hdr = document.getElementById("edge-hdr");
   const h = 150, pl = 4, pr = 8, pt = 14, pb = 22;
   const iw = W - pl - pr, ih = h - pt - pb;
   const lo = Tr - 12, hi = Tr + 12;
   const X = t => pl + (t-lo)/(hi-lo)*iw;
   const ts = []; for (let t = lo; t <= hi; t += 1) ts.push(t);
-  const A_ = num("in-anchor", 0), C_ = num("in-consensus", A_), F_ = num("in-forecast", A_);
+  const A_ = num("in-anchor") ?? 0, C_ = num("in-consensus") ?? A_, F_ = num("in-forecast") ?? A_;
 
   let g = "";
-
   if (mkt === null) {
-    // Show fair probability curves P(claims >= t) on 0-100% scale across thresholds
+    hdr.textContent = "Fair price across thresholds";
     const Y = p => pt + (1 - p)*ih;
     for (let t = lo; t <= hi; t += 4) {
       g += `<line x1="${X(t)}" y1="${pt}" x2="${X(t)}" y2="${h-pb}" stroke="var(--line)"/>`;
       g += `<text x="${X(t)}" y="${h-pb+12}" text-anchor="middle" class="ax">${t}K</text>`;
     }
-    // 50c line
-    g += `<line x1="${pl}" y1="${Y(0.5)}" x2="${W-pr}" y2="${Y(0.5)}" stroke="var(--line)" stroke-dasharray="2 2"/>`;
-    MODELS.forEach((m) => {
+    g += `<line x1="${pl}" y1="${Y(0.5)}" x2="${W-pr}" y2="${Y(0.5)}" stroke="var(--ink-3)" stroke-dasharray="2 2" opacity="0.6"/>`;
+    g += `<text x="${pl+2}" y="${Y(0.5)-3}" class="ax">50¢</text>`;
+    models.forEach(m => {
       const pts = ts.map(t => `${X(t).toFixed(1)},${Y(pge(m.center(A_,C_,F_), t, m.sd)).toFixed(1)}`).join(" ");
       g += `<polyline points="${pts}" fill="none" stroke="${m.hex}" stroke-width="2"/>`;
     });
     g += `<line x1="${X(Tr)}" y1="${pt}" x2="${X(Tr)}" y2="${h-pb}" stroke="var(--ink-3)" stroke-dasharray="3 3"/>`;
-    g += `<text x="${W-pr}" y="${pt-2}" text-anchor="end" class="ax">100¢</text>`;
-    g += `<text x="${W-pr}" y="${h-pb+11}" text-anchor="end" class="ax">0¢</text>`;
-    g += `<text x="${W/2}" y="${h-1}" text-anchor="middle" class="ax">Fair price curve · enter market ¢ for net edge</text>`;
+    g += `<text x="${W/2}" y="${h-1}" text-anchor="middle" class="ax">Fair YES price as the threshold moves · enter market ¢ for net edge</text>`;
   } else {
-    // Show edge curves (Model - Market)
+    hdr.textContent = "Edge across thresholds";
     let mn = 0, mx = 0;
-    const edges = MODELS.map(m => ts.map(t => pge(m.center(A_,C_,F_), t, m.sd) - mkt));
+    const edges = models.map(m => ts.map(t => pge(m.center(A_,C_,F_), t, m.sd) - mkt));
     edges.forEach(es => es.forEach(e => { mn = Math.min(mn, e); mx = Math.max(mx, e); }));
     const scale = Math.max(Math.abs(mn), Math.abs(mx), 0.02) * 1.2;
     const Y = e => pt + ih/2 - (e/scale)*(ih/2);
-
     g += `<line x1="${pl}" y1="${Y(0)}" x2="${W-pr}" y2="${Y(0)}" stroke="var(--ink)" stroke-width="1" opacity="0.55"/>`;
     for (let t = lo; t <= hi; t += 4) {
       g += `<line x1="${X(t)}" y1="${pt}" x2="${X(t)}" y2="${h-pb}" stroke="var(--line)"/>`;
       g += `<text x="${X(t)}" y="${h-pb+12}" text-anchor="middle" class="ax">${t}K</text>`;
     }
-    MODELS.forEach((m, i) => {
+    models.forEach((m, i) => {
       const pts = ts.map((t, j) => `${X(t).toFixed(1)},${Y(edges[i][j]).toFixed(1)}`).join(" ");
       g += `<polyline points="${pts}" fill="none" stroke="${m.hex}" stroke-width="2"/>`;
     });
     g += `<line x1="${X(Tr)}" y1="${pt}" x2="${X(Tr)}" y2="${h-pb}" stroke="var(--ink-3)" stroke-dasharray="3 3"/>`;
     g += `<text x="${W-pr}" y="${pt-2}" text-anchor="end" class="ax">+${Math.round(scale*100)}¢</text>`;
-    g += `<text x="${W-pr}" y="${h-pb+11}" text-anchor="end" class="ax">−${Math.round(scale*100)}¢</text>`;
-    g += `<text x="${W/2}" y="${h-1}" text-anchor="middle" class="ax">Net YES edge (model − ${Math.round(mkt*100)}¢)</text>`;
+    g += `<text x="${W/2}" y="${h-1}" text-anchor="middle" class="ax">Net YES edge (model − ${Math.round(mkt*100)}¢) · right of zero means YES cheap</text>`;
   }
   wrap.innerHTML = svg(h, g);
 }
