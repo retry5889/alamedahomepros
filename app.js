@@ -126,12 +126,13 @@ function start() {
     });
   }
 
-  // σ chips: nudge threshold by the model's σ multiples to teach tail-area intuition.
+  // σ chips: set threshold to center + k·σ so you see exactly what a kσ gap looks like.
   for (const chip of document.querySelectorAll(".z-chip")) {
     chip.addEventListener("click", () => {
-      const tnum = num("in-threshold");
-      if (tnum === null) return;
-      els["in-threshold"].value = Math.max(0, Math.round(tnum) + parseFloat(chip.dataset.t));
+      if (!cur) return;
+      const m = cur.models[cur.sel];
+      if (!m || !m.has) return;
+      els["in-threshold"].value = Math.max(0, Math.round(m.c + parseFloat(chip.dataset.k) * m.sd));
       recalc(true);
     });
   }
@@ -358,7 +359,7 @@ function drawDist(cur, m) {
     const k = defs[i].k;
     const dist = k * m.sd;
     const p2 = Math.round(Phi(-k)*100);
-    ch.dataset.t = dist.toFixed(1);
+    ch.dataset.k = k;
     ch.textContent = `${dist.toFixed(1)}K→${k}σ·${p2}¢`;
   });
 

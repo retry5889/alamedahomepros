@@ -279,7 +279,7 @@ h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.2px; }
   height: 10px;
   border-radius: 5px;
   background: var(--chart-track);
-  padding: 0 2px;
+  overflow: hidden;
 }
 .m-fill {
   height: 100%;
@@ -371,3 +371,54 @@ h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.2px; }
 .howto[open] summary::before { content: "−"; }
 .howto-body p { margin-top: 8px; font-size: 13px; color: var(--ink-2); line-height: 1.5; }
 .howto-body b { color: var(--ink); font-weight: 600; }
+
+/* Sigma chips (distribution card) */
+.z-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+  align-items: center;
+}
+.z-hint { font-size: 11px; color: var(--ink-3); width: 100%; }
+.z-chip {
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-2);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 10px;
+  touch-action: manipulation;
+}
+.z-chip:active { background: var(--line); }
+.fee-note { font-size: 12px; color: var(--ink-3); margin-top: 8px; line-height: 1.45; }
+
+/* Fee card */
+.fee-card {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--bg-raised);
+}
+.fee-row { font-size: 13px; color: var(--ink-2); margin-top: 4px; line-height: 1.45; }
+.fee-val { font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
+.fee-bar-wrap { margin-top: 8px; }
+.fee-bar-track {
+  position: relative;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--chart-track);
+  overflow: hidden;
+}
+.fee-bar {
+  height: 100%;
+  border-radius: 5px;
+  background: var(--neg);
+  width: 0%;
+}
+.fee-bar.ok { background: var(--pos); }
+.fee-cap { font-size: 11px; color: var(--ink-3); margin-top: 4px; }
+.fee-bar-lbl { font-size: 10px; color: var(--ink-3); margin-top: 3px; }
