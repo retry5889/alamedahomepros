@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="robots" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="color-scheme" content="light dark">
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#101114" media="(prefers-color-scheme: dark)">
@@ -68,7 +67,7 @@
     </div>
   </section>
 
-  <div id="verdict" class="verdict" role="status">
+  <div id="verdict" class="verdict">
     <span class="v-tag" id="v-tag"></span>
     <span class="v-big" id="v-big"></span>
     <span class="v-sub" id="v-sub"></span>
@@ -83,6 +82,27 @@
     <div class="chart-hdr">Why this price · <span id="dist-model"></span></div>
     <div id="chart-dist"></div>
     <p id="dist-note" class="dist-note"></p>
+    <div class="z-chips">
+      <span class="z-hint">P(≤T) vs σ distance (per 1K shift):</span>
+      <button class="z-chip" data-t="3.8">3.8K→0.3σ·38¢</button>
+      <button class="z-chip" data-t="6.3">6.3K→0.5σ·31¢</button>
+      <button class="z-chip" data-t="12.0">12.0K→1σ·16¢</button>
+      <button class="z-chip" data-t="24.0">24.0K→2σ·2.3¢</button>
+    </div>
+    <div class="fee-note" id="fee-note"></div>
+  </section>
+
+  <section class="fee-card" aria-label="Kalshi fees">
+    <div class="chart-hdr">Fees on this price</div>
+    <div class="fee-row">Taker (market order): formula C·r·p(1−p), r=1.75% → <span class="fee-val" id="fee-taker"></span></div>
+    <div class="fee-row">Maker (resting limit): taker × 0.25 → <span class="fee-val" id="fee-maker"></span></div>
+    <div class="fee-bar-wrap">
+      <div class="fee-bar-track">
+        <div class="fee-bar" id="fee-bar"></div>
+        <div class="fee-cap" id="fee-cap"></div>
+      </div>
+      <div class="fee-bar-lbl">fee ÷ edge 0–100%</div>
+    </div>
   </section>
 
   <section class="chart-card" aria-label="Threshold sensitivity">
@@ -97,8 +117,8 @@
       <p><b>The market.</b> A Kalshi YES contract pays $1 if weekly initial claims come in at or above the threshold. Its fair price in cents equals the probability of that happening.</p>
       <p><b>The models.</b> Each turns a view of this week's print into that probability: P(claims ≥ T) = Φ((center − T) ÷ σ). No-change repeats last week's print (σ 13.0K). Consensus blend moves halfway to the economist consensus (σ 12.4K). Forecast blend moves 90% of the way to the in-house forecast (σ 12.0K). A model only participates when its input is filled in; the card never invents a consensus or forecast.</p>
       <p><b>The bars.</b> Each bar is a model's fair YES price on a 0–100¢ track. The faint mark is 50¢; the dark tick is the market price. Fill reaching past the tick means that model calls YES cheap.</p>
-      <p><b>The bell.</b> The curve shows where the selected model expects the print to land. The shaded slice at or above the threshold is the fair YES price, literally the share of outcomes that pay out. Tap a model row to switch curves and watch the shaded area move.</p>
-      <p><b>Fees.</b> Kalshi charges roughly 7¢ × price × (1 − price) per contract, worst near 50¢. Edges under about 2¢ rarely survive it, so the verdict shows net-of-fee too.</p>
+      <p><b>The bell.</b> The curve shows where the selected model expects the print to land. The shaded slice at or above the threshold is the fair YES price — the share of outcomes that pay out. Tap a model row to switch curves. The σ chips under it let you slide the threshold and watch the tail shrink: threshold − center = 1σ leaves 16¢, 2σ leaves 2.3¢.</p>
+      <p><b>Fees.</b> Taker (market) orders pay C·r·p(1−p) where C is contract count and r=1.75%; max is about 0.44¢ at p=50¢. Maker (resting) orders pay one quarter of that, max 0.11¢. Edges under 1¢ rarely survive.</p>
       <p><b>Caution.</b> These models missed every 15K+ weekly move in the test sample. If the market prices a big move, it may know something this card doesn't.</p>
     </div>
   </details>
