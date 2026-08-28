@@ -72,9 +72,9 @@ function erf(x0) {
 const Phi = z => 0.5*(1+erf(z/Math.SQRT2));
 const npdf = x => Math.exp(-x*x/2)/Math.sqrt(2*Math.PI);
 
-// Kalshi taker fee on YES bought at price p (0..1): 7% x p x (1-p).
-const FEE_MIN_T = 1/8;  // threshold scale that makes fee (1-T)/4c; below this fee is 0
-const feeYes = p => p >= FEE_MIN_T ? Math.min(0.25, (1-p)/4) : 0;
+// Kalshi taker fee on YES bought at price p (0..1): about 7% x p x (1-p).
+// Above price 0.8 the published fee scale makes it (1-p)*25%, i.e. min((1-T))/4 capped at 25c.
+const feeYes = p => p >= 1/8 ? Math.min(0.25, (1-p)/4) : 0;
 const fmtFee = f => "≈" + f.toFixed(1) + "¢";
 
 const MODELS = [
@@ -91,7 +91,6 @@ const verdict = document.getElementById("verdict");
 verdict.setAttribute("aria-live", "polite");
 let started = false;
 let cur = null;   // last rendered state, for row taps
-let lastModels = null;
 
 function start() {
   if (started) return;
@@ -153,25 +152,27 @@ function recalc() {
   const M = num("in-market");
   if (A === null || T === null) {
     cur = null;
-    document.getElementById("verdict").className = "verdict";
+    verdict.className = "verdict";
+    document.getElementById("v-big").textContent = "Need a last-print value";
     document.getElementById("models").innerHTML = "";
     document.getElementById("m-cap").textContent = "";
     document.getElementById("chart-dist").innerHTML = "";
     document.getElementById("dist-note").textContent = "";
     document.getElementById("edge-legend").innerHTML = "";
     document.getElementById("chart-edge").innerHTML = "";
+    document.getElementById("edge-hdr").textContent = "Fair price across thresholds";
     return;
   }
   const mkt = M === null ? null : M / 100;
-  let models = MODELS.map((m, i) => {
-    const has = C === null && m.needs === "C" || F === null && m.needs === "F" ? false : true;
-    const c = has ? m.center(A, C ?? A, F ?? A) : null;
-    return { ...m, idx: i, has, c, p: has ? pge(c, T, m.sd) : null };
+  const models = MODELS.map((m, i) => {
+    const has = !(C === null && m.needs === "C") && !(F === null && m.needs === "F");
+    const cc = has ? m.center(A, C === null ? A : C, F === null ? A : F) : null;
+    return { ...m, idx: i, has, c: cc, p: has ? pge(cc, T, m.sd) : null };
   });
   const live = models.filter(m => m.has);
   const lo = Math.min(...live.map(m => m.p));
   const hi = Math.max(...live.map(m => m.p));
-  // Default focus: most-informed available model (highest idx).
+  // Default focus: most-informed available model.
   const focus = models.filter(m => m.has).pop();
   cur = { A, C, F, T, M, mkt, models, lo, hi, sel: focus.idx };
   render(cur);
@@ -182,10 +183,14 @@ function render(cur) {
   const hasM = mkt !== null;
   const c = x => Math.round(x*100);
   const mk = hasM ? Math.round(M) : null;
+  const edge = (e, fee) => {
+    const n = Math.max(0, e - fee);
+    return n === 0 ? "(fees eat it)" : `+${n}`;
+  };
 
   // Verdict: raw gap in the headline, net-of-fee in the sub-line, NO-side framing
   // when YES is rich.
-  const v = document.getElementById("verdict");
+  const v = verdict;
   const vTag = document.getElementById("v-tag");
   const vBig = document.getElementById("v-big");
   const vSub = document.getElementById("v-sub");
@@ -208,7 +213,7 @@ function render(cur) {
       v.classList.add("neg");
       vTag.textContent = "YES RICH";
       vBig.textContent = `NO at ${noPrice}¢`;
-      vSub.textContent = `Models · ${loC}–${hiC}¢ · YES ${mk}¢. Net of ${fmtFee(fee)} fee · NO edge +${edge(mk - hiC, fee)}¢ by model.`;
+      vSub.textContent = `Models · ${loC}–${hiC}¢ · YES ${mk}¢. Net of ${fmtFee(fee)} fee · NO edge ${edge(mk - hiC, fee)} by model.`;
     } else {
       vTag.textContent = "NO EDGE";
       vBig.textContent = `${loC}–${hiC}¢`;
@@ -219,15 +224,11 @@ function render(cur) {
     vBig.textContent = `${c(lo)}–${c(hi)}¢`;
     vSub.textContent = `Model range for P(claims ≥ ${Tr}K). Enter the market YES price to size the edge.`;
   }
-  function edge(e, fee) {
-    const n = Math.max(0, e - fee);
-    return n === 0 ? "(fees eat it)" : `+${n}`;
-  }
 
   // Model rows: name, price, edge, inline bar with market tick + 50c midpoint.
-  const mSel = models[sel];
+  const missing = models.filter(m => !m.has);
   document.getElementById("models").innerHTML = models.map(m => {
-    const rowCls = m.has ? "m-row" + (m.idx === sel ? " sel" : "") : "m-row na";
+    const rowCls = "m-row" + (m.has ? (m.idx === sel ? " sel" : "") : " na");
     const price = m.has ? `${c(m.p)}<small>¢</small>` : "—";
     let edgeHtml = "<span>—</span>";
     if (m.has && hasM) {
@@ -252,18 +253,21 @@ function render(cur) {
       ${barHtml}${hint}
     </div>`;
   }).join("");
-  document.getElementById("m-cap").textContent = hasM ?
+  const cap = hasM ?
     "Tick · market YES. Fill past tick · that model says cheap. Tap a row for its curve." :
-    "Fair YES per model on a 0–100¢ track · white mark is 50¢. Tap a row for its curve.";
+    "Fair YES per model on a 0–100¢ track · faint mark is 50¢. Tap a row for its curve.";
+  document.getElementById("m-cap").textContent = cap +
+    (missing.length ? ` ${missing.length} model${missing.length>1?"s":""} off (missing input).` : "");
 
   // Threshold chart: fair curves (no market) or edge curves (market given).
+  const liveModels = models.filter(m => m.has);
   const legend = document.getElementById("edge-legend");
-  legend.innerHTML = models.filter(m => m.has).map(m =>
+  legend.innerHTML = liveModels.map(m =>
     `<span class="lg"><span class="lg-dot" style="background:${m.hex}"></span>${m.name}</span>`).join("");
-  drawEdge(models.filter(m => m.has), A, Tr, mkt);
+  drawEdge(liveModels, A, Tr, mkt);
 
   // Distribution strip for the focused model.
-  drawDist(cur, mSel);
+  drawDist(cur, models[sel]);
 }
 
 // ---- Charts ----
@@ -271,64 +275,57 @@ const W = 336;
 function svg(h, inner) { return `<svg viewBox="0 0 ${W} ${h}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`; }
 
 function drawDist(cur, m) {
-  const h = 132, pl = 8, pr = 8, pt = 10, pb = 22;
+  const h = 132, pl = 8, pr = 8, pt = 12, pb = 22;
   const iw = W - pl - pr, ih = h - pt - pb;
   const half = 3.4;                        // window = center ± 3.4 sd
   const span = 2*half*m.sd;
   const xLo = m.c - span/2, xHi = m.c + span/2;
   const X = x => pl + (x - xLo)/span*iw;
   const Y = d => pt + ih - d*ih;           // d = normalized pdf, 0..1
-  const N = 80;
-  let path = "", fill = "";
-  const pts = [];
+  const N = 100;
+
+  let lineP = "";
+  let fillP = "";
+  const t0 = Math.max(cur.T, xLo);
   for (let i = 0; i <= N; i++) {
     const x = xLo + span*i/N;
-    const d = npdf(Math.abs(x - m.c) / m.sd) * (x >= cur.T ? +1 : -1) / (x >= cur.T ? 1 : -1);
+    const y = Y(npdf((x - m.c)/m.sd));
+    lineP += (i ? "L" : "M") + `${X(x).toFixed(1)} ${y.toFixed(1)} `;
   }
-  for (let i = 0; i <= N; i++) {
-    const x = xLo + span*i/N;
-    const d = npdf((x - m.c)/m.sd);
-    pts.push([X(x), Y(d)]);
-    if (x >= cur.T) {
-      fill += (fill ? "L" : "M") + `${X(x).toFixed(1)} ${Y(d).toFixed(1)} `;
-      if (i === 0) fill = "M" + `${X(x).toFixed(1)} ${Y(d).toFixed(1)} `;
+  if (t0 < xHi) {
+    for (let i = 0; i <= N; i++) {
+      const x = t0 + (xHi - t0)*i/N;
+      const y = Y(npdf((x - m.c)/m.sd));
+      fillP += (i ? "L" : "M") + `${X(x).toFixed(1)} ${y.toFixed(1)} `;
     }
+    fillP += `L${X(xHi).toFixed(1)} ${Y(0).toFixed(1)} L${X(t0).toFixed(1)} ${Y(0).toFixed(1)} Z`;
   }
-  // Build the shaded tail region T..xHi.
-  let fillP = `M${X(Math.max(cur.T, xLo)),Y(npdf((Math.max(cur.T,xLo)-m.c)/m.sd))}`;
-  for (let i = 0; i <= N; i++) {
-    const x = Math.max(cur.T, xLo) + (xHi - Math.max(cur.T, xLo))*i/N;
-    fillP += ` L${X(x).toFixed(1)} ${Y(npdf((x-m.c)/m.sd)).toFixed(1)}`;
-  }
-  fillP += ` L${X(xHi),Y(0)} H${X(Math.max(cur.T, xLo))} Z`;
-  const lineP = "M" + pts.map(p => `${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" L");
 
   let g = "";
-  // Surplus markers drawn under the curve: last, cons, fcst, center.
-  const marks = [
-    { x: m.c, lbl: "center", cls: "ax" },
-    ...(cur.C !== null ? [{ x: cur.C, lbl: "cons", cls: "ax" }] : []),
-    ...(cur.F !== null ? [{ x: cur.F, lbl: "fcst", cls: "ax" }] : []),
-  ].filter(o => o.x > xLo && o.x < xHi);
-  g += `<path d="${fillP}" fill="${m.hex}" opacity="0.25"/>`;
+  if (fillP) g += `<path d="${fillP}" fill="${m.hex}" opacity="0.25"/>`;
   g += `<path d="${lineP}" fill="none" stroke="${m.hex}" stroke-width="2"/>`;
   g += `<line x1="${X(cur.T)}" y1="${pt}" x2="${X(cur.T)}" y2="${h-pb}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="3 3"/>`;
-  marks.forEach(o => {
-    const yo = npdf((o.x-m.c)/m.sd)*ih + pt;
-    g += `<circle cx="${X(o.x)}" cy="${yo}" r="2.5" fill="var(--ink-3)"/>`;
+  // Markers: center, plus consensus/forecast if in window.
+  const marks = [ { x: m.c, lbl: "center", strong: true } ];
+  if (cur.C !== null) marks.push({ x: cur.C, lbl: "cons" });
+  if (cur.F !== null) marks.push({ x: cur.F, lbl: "fcst" });
+  const pts = marks.filter(o => o.x > xLo + span*0.03 && o.x < xHi - span*0.03);
+  pts.forEach(o => {
+    const yo = Y(npdf((o.x - m.c)/m.sd));
+    g += `<circle cx="${X(o.x)}" cy="${yo}" r="2.5" fill="${o.strong ? "var(--ink-2)" : "var(--ink-3)"}"/>`;
+    if (o.strong) g += `<text x="${X(o.x)}" y="${h-pb+12}" text-anchor="middle" class="ax">${Math.round(o.x)}K center</text>`;
   });
-  g += `<text x="${X(cur.T)}" y="${pt-2}" text-anchor="middle" class="ax">${Math.round(cur.T)}K (T)</text>`;
-  g += `<text x="${X(m.c)}" y="${h-pb+12}" text-anchor="middle" class="ax">${Math.round(m.c)}K · center</text>`;
+  g += `<text x="${X(cur.T)}" y="${pt-3}" text-anchor="middle" class="ax">${Math.round(cur.T)}K = T</text>`;
   document.getElementById("chart-dist").innerHTML = svg(h, g);
 
   // Plain-language sigma commentary.
   const z = (cur.T - m.c)/m.sd;
   const az = Math.abs(z);
   const dir = z < 0 ? "below" : "above";
-  const sense = z < 0 ? "YES is likely" : z > 0 ? "YES is unlikely" : "a coin flip";
+  const sense = z < 0 ? "so YES is likely" : z > 0 ? "so YES is unlikely" : "so this is a coin flip";
   document.getElementById("dist-note").textContent =
-    `Threshold sits ${az.toFixed(1)}σ ${dir} the ${m.short} center (${Math.round(m.c)}K). ` +
-    `The shaded tail, ${Math.round(m.p*100)}¢, is the share of outcomes at or above T — ${sense}.`;
+    `T sits ${az.toFixed(1)}σ ${dir} the ${m.short} center of ${Math.round(m.c)}K, ${sense}. ` +
+    `The shaded tail at or above T is the fair YES price, ${Math.round(m.p*100)}¢.`;
   document.getElementById("dist-model").textContent = m.name + " · σ " + m.sd.toFixed(1) + "K";
 }
 
