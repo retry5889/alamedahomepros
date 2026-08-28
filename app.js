@@ -235,7 +235,7 @@ function render(cur) {
       const maker = feeMaker(mkt);
       const mn = Math.max(0, edgeLo - maker);
       const mn2 = Math.max(0, edgeHi - maker);
-      vSub.textContent = `Models ${loC}–${hiC}¢ vs YES ${mk}¢. Taker fee ${fmtC(tk)} → net +${c(nLo)}–${c(nHi)}¢; maker limit → +${c(mn)}–${c(mn2)}¢.`;
+      vSub.textContent = `Models ${loC}–${hiC}¢ vs YES ${mk}¢. Taker fee ${fmtC(tk)} → net +${c(nLo)}–${c(nHi)}¢; limit order → +${c(mn)}–${c(mn2)}¢.`;
       updateFeePanel(mkt, edgeLo);
     } else if (hi < mkt) {
       const noEdgeLo = mkt - hi, noEdgeHi = mkt - lo;
@@ -303,7 +303,7 @@ const W = 336;
 function svg(h, inner) { return `<svg viewBox="0 0 ${W} ${h}" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`; }
 
 function drawDist(cur, m) {
-  const h = 140, pl = 8, pr = 8, pt = 12, pb = 24;
+  const h = 148, pl = 8, pr = 8, pt = 12, pb = 28;
   const iw = W - pl - pr, ih = h - pt - pb;
   const half = 3.4;
   const span = 2*half*m.sd;
@@ -350,6 +350,7 @@ function drawDist(cur, m) {
   });
 
   g += `<text x="${X(cur.T)}" y="${pt-3}" text-anchor="middle" class="ax">${Math.round(cur.T)}K = T</text>`;
+  g += `<text x="${X(m.c)}" y="${h-pb+22}" text-anchor="middle" class="ax">${Math.round(m.c)}K</text>`;
   document.getElementById("chart-dist").innerHTML = svg(h, g);
 
   // σ chips: rebuild labels with true tail prices for this model.
@@ -419,6 +420,9 @@ function drawEdge(models, A, Tr, mkt) {
     g += `<line x1="${pl}" y1="${Y(0)}" x2="${W-pr}" y2="${Y(0)}" stroke="var(--ink)" stroke-width="1" opacity="0.55"/>`;
     g += `<line x1="${pl}" y1="${Y(tk)}" x2="${W-pr}" y2="${Y(tk)}" stroke="var(--blue)" stroke-dasharray="2 2" opacity="0.7"/>`;
     g += `<text x="${pl}" y="${Y(tk)+9}" class="ax">taker +${fmtC(tk)}</text>`;
+    const mkf = feeMaker(mkt);
+    g += `<line x1="${pl}" y1="${Y(mkf)}" x2="${W-pr}" y2="${Y(mkf)}" stroke="var(--green)" stroke-dasharray="2 2" opacity="0.7"/>`;
+    g += `<text x="${pl}" y="${Y(mkf)+9}" class="ax">limit +${fmtC(mkf)}</text>`;
     for (let t = lo; t <= hi; t += 4) {
       g += `<line x1="${X(t)}" y1="${pt}" x2="${X(t)}" y2="${h-pb}" stroke="var(--line)"/>`;
       g += `<text x="${X(t)}" y="${h-pb+12}" text-anchor="middle" class="ax">${t}K</text>`;
@@ -429,7 +433,7 @@ function drawEdge(models, A, Tr, mkt) {
     });
     g += `<line x1="${X(Tr)}" y1="${pt}" x2="${X(Tr)}" y2="${h-pb}" stroke="var(--ink-3)" stroke-dasharray="3 3"/>`;
     g += `<text x="${W-pr}" y="${pt-2}" text-anchor="end" class="ax">+${Math.round(scale*100)}¢</text>`;
-    g += `<text x="${W/2}" y="${h-1}" text-anchor="middle" class="ax">Net YES edge (model − ${Math.round(mkt*100)}¢) · above blue line beats taker fee</text>`;
+    g += `<text x="${W/2}" y="${h-1}" text-anchor="middle" class="ax">Net YES edge (model − ${Math.round(mkt*100)}¢) · above blue/green lines beat taker/limit fees</text>`;
   }
   wrap.innerHTML = svg(h, g);
 }
