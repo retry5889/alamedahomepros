@@ -310,7 +310,7 @@ h1 { font-size: 18px; font-weight: 700; letter-spacing: -0.2px; }
 .m-row.na .m-dot { background: var(--ink-3); opacity: 0.4; }
 .m-row.na .m-name, .m-row.na .m-price { opacity: 0.45; }
 .m-row.na .m-hint { display: block; }
-.m-row.sel { border-left-color: var(--M); padding-left: -2px; }
+.m-row.sel { border-left-color: var(--M); }
 .m-row.sel .m-dot { box-shadow: 0 0 0 3px var(--chart-track); }
 .m-cap {
   font-size: 11px;
