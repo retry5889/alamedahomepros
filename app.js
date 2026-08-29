@@ -308,7 +308,7 @@ function mulberry32(a) {
 }
 
 function drawDist(cur, m) {
-  const h = 160, pl = 8, pr = 8, pt = 12, pb = 28;
+  const h = 168, pl = 8, pr = 8, pt = 12, pb = 34;
   const iw = W - pl - pr, ih = h - pt - pb;
   const half = 3.4;
   const span = 2*half*m.sd;
@@ -323,6 +323,7 @@ function drawDist(cur, m) {
     const y = Y(npdf((x - m.c)/m.sd));
     lineP += (i ? "L" : "M") + `${X(x).toFixed(1)} ${y.toFixed(1)} `;
   }
+  const inT = cur.T >= xLo && cur.T <= xHi;
   if (cur.T < xHi) {
     const t0 = Math.max(cur.T, xLo);
     for (let i = 0; i <= N; i++) {
@@ -334,23 +335,37 @@ function drawDist(cur, m) {
   }
 
   let g = "";
-  if (fillP) g += `<path d="${fillP}" fill="${m.hex}" opacity="0.22"/>`;
+  if (fillP) g += `<path d="${fillP}" fill="${m.hex}" opacity="0.20"/>`;
   g += `<path d="${lineP}" fill="none" stroke="${m.hex}" stroke-width="2"/>`;
 
-  // Dot field: rejection-sampled dots under the curve, colored by side of T.
-  const rng = mulberry32(42);
-  const nDots = 120;
-  for (let i = 0; i < nDots; i++) {
-    const x = xLo + rng() * span;
-    const d = npdf((x - m.c) / m.sd);
-    const y = rng() * d;
+  // Dot lattice: 24 columns x 5 rows of potential outcomes. Rows lit per column
+  // follow the curve height; a cell colors amber when the column is past T.
+  // n/c dots colored = the fair price, directly countable.
+  const COLS = 24, ROWS = 5;
+  const cw = iw/COLS, r0 = 1.7, gap = cw*0.42;
+  for (let cI = 0; cI < COLS; cI++) {
+    const x = xLo + span*(cI + 0.5)/COLS;
+    const dn = npdf((x - m.c)/m.sd);
+    const lit = Math.ceil(dn*ROWS);
     const over = x >= cur.T;
-    g += `<circle cx="${X(x).toFixed(1)}" cy="${Y(y/d).toFixed(1)}" r="1.6" fill="${over ? m.hex : "var(--ink-3)"}" opacity="${over ? 0.8 : 0.3}"/>`;
+    for (let rI = 0; rI < lit; rI++) {
+      const cx = X(x), cy = pt + ih - rI*gap;
+      g += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r0}" fill="${over ? "var(--sig)" : "var(--ink-3)"}" opacity="${over ? 0.95 : 0.35}"/>`;
+    }
+  }
+
+  // Key row inside the chart: "N of C outcomes ≥ T = value"
+  if (inT) {
+    const pct = Math.round(m.p*100);
+    g += `<text x="${pl}" y="${h-2}" class="ax" font-size="11" fill="var(--ink-2)">● ${pct} of 100 imagined prints ≥ T → YES worth ${pct}¢</text>`;
   }
 
   // Threshold line (draggable)
-  g += `<line x1="${X(cur.T)}" y1="${pt}" x2="${X(cur.T)}" y2="${h-pb}" stroke="var(--ink)" stroke-width="2" stroke-dasharray="4 3"/>`;
-  g += `<circle cx="${X(cur.T)}" cy="${pt}" r="5" fill="var(--ink)" opacity="0.7"/>`;
+  if (inT) {
+    g += `<line x1="${X(cur.T)}" y1="${pt}" x2="${X(cur.T)}" y2="${h-pb}" stroke="var(--sig)" stroke-width="2" stroke-dasharray="4 3"/>`;
+    g += `<circle cx="${X(cur.T)}" cy="${pt}" r="4.5" fill="var(--sig)"/>`;
+    g += `<text x="${X(cur.T)}" y="${pt-6}" text-anchor="middle" class="ax" fill="var(--sig)">${Math.round(cur.T)}K</text>`;
+  }
 
   // σ ticks
   [0, 1, 2, -1, -2].map(k => ({ v: m.c + k*m.sd, k })).forEach(o => {
@@ -360,7 +375,7 @@ function drawDist(cur, m) {
     }
   });
 
-  // Markers
+  // Markers for center/consensus/forecast
   const marks = [{ x: m.c, strong: true }];
   if (cur.C !== null) marks.push({ x: cur.C });
   if (cur.F !== null) marks.push({ x: cur.F });
@@ -368,9 +383,8 @@ function drawDist(cur, m) {
     const yo = Y(npdf((o.x - m.c)/m.sd));
     g += `<circle cx="${X(o.x)}" cy="${yo}" r="2.5" fill="${o.strong ? "var(--ink-2)" : "var(--ink-3)"}"/>`;
   });
+  if (m.c > xLo && m.c < xHi) g += `<text x="${X(m.c)}" y="${h-pb+24}" text-anchor="middle" class="ax">${Math.round(m.c)}K</text>`;
 
-  g += `<text x="${X(cur.T)}" y="${pt-4}" text-anchor="middle" class="ax">${Math.round(cur.T)}K</text>`;
-  g += `<text x="${X(m.c)}" y="${h-pb+24}" text-anchor="middle" class="ax">${Math.round(m.c)}K</text>`;
   document.getElementById("chart-dist").innerHTML = svg(h, g);
 
   // σ chips
@@ -379,7 +393,7 @@ function drawDist(cur, m) {
   chipsEl.innerHTML = defs.map(d => {
     const dist = d.k * m.sd;
     const p2 = Math.round(Phi(-d.k)*100);
-    return `<button class="z-chip" data-k="${d.k}">${dist.toFixed(1)}K·${d.k}σ·${p2}¢</button>`;
+    return `<button class="z-chip" data-k="${d.k}">${d.k}σ → ${p2}¢</button>`;
   }).join("");
 
   document.getElementById("dist-model").textContent = m.name + " · σ " + m.sd.toFixed(1) + "K";
@@ -395,54 +409,34 @@ function drawEV(cur, m) {
   const p = m.p, mkt = cur.mkt;
   const tk = feeTaker(mkt), mkf = feeMaker(mkt);
   const edge = p - mkt;
-  const netT = edge - tk, netM = edge - mkf;
 
-  // Window: center on market, wide enough to show model + fee + margin.
-  const halfW = Math.max(Math.abs(edge) + tk + 0.015, 0.03);
-  const lo = mkt - halfW, hi = mkt + halfW;
-  const h = 118, pl = 8, pr = 8, pt = 16, pb = 20;
-  const iw = W - pl - pr;
-  const X = v => pl + (v - lo) / (hi - lo) * iw;
-  const barH = 16, gap = 22;
-  const rows = [
-    { lbl: "raw",   e: edge, fee: 0 },
-    { lbl: "taker", e: edge, fee: tk },
-    { lbl: "limit", e: edge, fee: mkf },
+  const rungs = [
+    { lbl: "model − market",  net: edge,       on: true },
+    { lbl: "less taker fee",  net: edge - tk,  fee: tk,  on: true },
+    { lbl: "less limit fee",  net: edge - mkf, fee: mkf, on: true },
   ];
 
+  const h = 96, pl = 8, pr = 8, pt = 30, pb = 20;
+  const iw = W - pl - pr;
+  const ext = Math.max(Math.abs(edge), tk, mkf, 0.02);
+  const lo = -(ext + 0.01), hi = ext + 0.01;
+  const X = v => pl + ( (v - lo) / (hi - lo) ) * iw;
+  const barH = 13, gap = 20;
+
   let g = "";
-  // 1¢ gridlines
-  const c0 = Math.ceil(lo * 100), c1 = Math.floor(hi * 100);
-  for (let cc = c0; cc <= c1; cc++) {
-    const x = X(cc / 100);
-    g += `<line x1="${x}" y1="${pt - 6}" x2="${x}" y2="${h - pb}" stroke="var(--line)" stroke-width="0.5"/>`;
-    g += `<text x="${x}" y="${h - pb + 12}" text-anchor="middle" class="ax">${cc}</text>`;
-  }
-  // Market line
-  g += `<line x1="${X(mkt)}" y1="${pt - 6}" x2="${X(mkt)}" y2="${h - pb}" stroke="var(--ink)" stroke-width="1.5"/>`;
-  g += `<text x="${X(mkt)}" y="${pt - 8}" text-anchor="middle" class="ax" font-weight="700">mkt ${Math.round(mkt*100)}¢</text>`;
-
-  rows.forEach((r, i) => {
+  g += `<line x1="${X(0)}" y1="${pt-8}" x2="${X(0)}" y2="${h-pb}" stroke="var(--ink-2)" stroke-width="1"/>`;
+  rungs.forEach((r, i) => {
     const y = pt + i * (barH + gap);
-    // base track
-    g += `<rect x="${X(lo)}" y="${y}" width="${iw}" height="${barH}" rx="2" fill="var(--track)"/>`;
-    // edge fill
-    if (r.e > 0) {
-      const feeEnd = Math.min(p, mkt + r.fee);
-      const netEnd = mkt + r.e - r.fee;
-      if (r.fee > 0.001) g += `<rect x="${X(mkt)}" y="${y}" width="${X(feeEnd)-X(mkt)}" height="${barH}" rx="2" fill="var(--neg)" opacity="0.55"/>`;
-      if (netEnd > feeEnd) g += `<rect x="${X(feeEnd)}" y="${y}" width="${X(netEnd)-X(feeEnd)}" height="${barH}" rx="2" fill="var(--pos)"/>`;
-    } else if (r.e < 0) {
-      g += `<rect x="${X(p)}" y="${y}" width="${X(mkt)-X(p)}" height="${barH}" rx="2" fill="var(--neg)"/>`;
-    }
-    // model price marker
-    g += `<line x1="${X(p)}" y1="${y-2}" x2="${X(p)}" y2="${y+barH+2}" stroke="${m.hex}" stroke-width="2"/>`;
-    // label
-    const net = r.e - r.fee;
-    g += `<text x="${X(lo)+2}" y="${y-3}" class="ax">${r.lbl}</text>`;
-    g += `<text x="${X(hi)-2}" y="${y+11}" text-anchor="end" class="ax" font-weight="700" fill="${net>0?"var(--pos)":net<0?"var(--neg)":"var(--ink-3)"}">${net>0?"+":""}${net.toFixed(2)}¢</text>`;
+    const net = r.net;
+    const abs = Math.abs(net);
+    const col = net >= 0 ? "var(--up)" : "var(--dn)";
+    // cumulative bar from 0 to net
+    const x0 = X(Math.min(0, net)), x1 = X(Math.max(0, net));
+    g += `<rect x="${x0}" y="${y}" width="${Math.max(1.5, x1-x0)}" height="${barH}" fill="${col}" opacity="0.9"/>`;
+    g += `<text x="${pl+2}" y="${y-3}" class="ax" fill="var(--ink-2)">${r.lbl}</text>`;
+    g += `<text x="${net >= 0 ? x1+4 : x0-4}" y="${y+10}" text-anchor="${net >= 0 ? "start" : "end"}" class="ax" font-weight="700" fill="${col}">${net>=0?"+":""}${(net*100).toFixed(1)}¢</text>`;
   });
-
+  g += `<text x="${W/2}" y="${h-2}" text-anchor="middle" class="ax">net edge per contract, signed</text>`;
   wrap.innerHTML = svg(h, g);
 }
 
