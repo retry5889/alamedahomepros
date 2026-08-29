@@ -329,13 +329,23 @@ function mulberry32(a) {
 }
 
 function drawDist(cur, m) {
-  const h = 240, pl = 8, pr = 8, pt = 12, pb = 90;
-  const iw = W - pl - pr, ih = h - pt - pb;
+  const pl = 8, pr = 8;
+  const pt = 12, curveH = 138;
+  const axisY = pt + curveH;
+  const tickLblY = axisY + 16;
+  const waffleTop = tickLblY + 8;
+  const cellH = 9, cellGap = 1;
+  const ROWS = 10, COLS = 10, CELLS = 100;
+  const waffleH = ROWS * (cellH + cellGap) - cellGap;
+  const capY = waffleTop + waffleH + 14;
+  const h = capY + 8;
+
+  const iw = W - pl - pr;
   const half = 3.4;
   const span = 2*half*m.sd;
   const xLo = m.c - span/2, xHi = m.c + span/2;
   const X = x => pl + (x - xLo)/span*iw;
-  const Y = d => pt + ih - d*ih;
+  const Y = d => pt + curveH - d*curveH;
   const N = 100;
 
   let lineP = "", fillP = "";
@@ -359,50 +369,34 @@ function drawDist(cur, m) {
   if (fillP) g += `<path d="${fillP}" fill="${m.hex}" opacity="0.20"/>`;
   g += `<path d="${lineP}" fill="none" stroke="${m.hex}" stroke-width="2"/>`;
 
-    // Waffle strip: 10x10 grid of outcome cells; a cell colors when its share of
-  // the probability mass sits at or above T. Each cell = 1% of all imagined prints.
-  const CELLS = 100, COLS = 10, ROWS = 10;
-  const cellW = iw / COLS, cellH = 10, cellGap = 2;
-  const waffleTop = pt + ih + 8;
-  const vx = cI => pl + cI * cellW + cellGap/2;
-  const vy = rI => waffleTop + rI * (cellH + 1);
-  for (let cI = 0; cI < CELLS; cI++) {
-    const col = cI % COLS, row = Math.floor(cI / COLS);
-    const frac = (cI + 0.5) / CELLS;              // this cell's probability mass
-    const x = m.c + m.sd * invNormCdf(frac);       // inverse-CDF position of this cell
-    const over = x >= cur.T;
-    g += `<rect x="${vx(col).toFixed(1)}" y="${vy(row)}" width="${(cellW-cellGap).toFixed(1)}" height="${cellH}" fill="${over ? "var(--sig)" : "var(--ink-3)"}" opacity="${over ? 0.9 : 0.2}" rx="1"/>`;
-  }
-  // Waffle caption
-  const pct = Math.round(m.p*100);
-  g += `<text x="${pl}" y="${waffleBot + 28}" class="ax" font-size="11" fill="var(--ink-2)">${pct} of 100 cells colored = YES worth ${pct}¢</text>`;
-
-
-  // Threshold line (draggable)
-  if (inT) {
-    g += `<line x1="${X(cur.T)}" y1="${pt}" x2="${X(cur.T)}" y2="${h-pb}" stroke="var(--sig)" stroke-width="2" stroke-dasharray="4 3"/>`;
-    g += `<circle cx="${X(cur.T)}" cy="${pt}" r="4.5" fill="var(--sig)"/>`;
-    g += `<text x="${X(cur.T)}" y="${pt-6}" text-anchor="middle" class="ax" fill="var(--sig)">${Math.round(cur.T)}K</text>`;
-  }
-
-  // σ ticks
-  const waffleBot = waffleTop + 10*(10+1);
-  [0, 1, 2, -1, -2].map(k => ({ v: m.c + k*m.sd, k })).forEach(o => {
+  // σ ticks along the curve axis (labels merged with center K)
+  [2, 1, 0, -1, -2].map(k => ({ v: m.c + k*m.sd, k })).forEach(o => {
     if (o.v > xLo && o.v < xHi) {
-      g += `<line x1="${X(o.v)}" y1="${waffleBot+2}" x2="${X(o.v)}" y2="${waffleBot+7}" stroke="var(--ink-3)" stroke-width="1"/>`;
-      g += `<text x="${X(o.v)}" y="${waffleBot+16}" text-anchor="middle" class="ax">${o.k===0?"ctr":(o.k>0?"+"+o.k+"σ":o.k+"σ")}</text>`;
+      g += `<line x1="${X(o.v)}" y1="${axisY-4}" x2="${X(o.v)}" y2="${axisY+4}" stroke="var(--ink-3)" stroke-width="1"/>`;
+      const lbl = o.k === 0 ? `ctr·${Math.round(m.c)}K` : (o.k > 0 ? "+"+o.k+"σ" : o.k+"σ");
+      g += `<text x="${X(o.v)}" y="${tickLblY}" text-anchor="middle" class="ax">${lbl}</text>`;
     }
   });
 
-  // Markers for center/consensus/forecast
-  const marks = [{ x: m.c, strong: true }];
-  if (cur.C !== null) marks.push({ x: cur.C });
-  if (cur.F !== null) marks.push({ x: cur.F });
-  marks.filter(o => o.x > xLo && o.x < xHi).forEach(o => {
-    const yo = Y(npdf((o.x - m.c)/m.sd));
-    g += `<circle cx="${X(o.x)}" cy="${yo}" r="2.5" fill="${o.strong ? "var(--ink-2)" : "var(--ink-3)"}"/>`;
-  });
-  if (m.c > xLo && m.c < xHi) g += `<text x="${X(m.c)}" y="${waffleBot + 40}" text-anchor="middle" class="ax">${Math.round(m.c)}K</text>`;
+  // Waffle grid: 10x10, cell cI represents the (cI+0.5)/100 quantile of the
+  // model distribution; colored when that quantile ≥ T. Count = fair YES price.
+  const cellW = iw / COLS - cellGap;
+  for (let cI = 0; cI < CELLS; cI++) {
+    const col = cI % COLS, row = Math.floor(cI / COLS);
+    const frac = (cI + 0.5) / CELLS;
+    const x = m.c + m.sd * invNormCdf(frac);
+    const over = x >= cur.T;
+    g += `<rect x="${(pl + col*(cellW+cellGap)).toFixed(1)}" y="${waffleTop + row*(cellH+cellGap)}" width="${cellW.toFixed(1)}" height="${cellH}" fill="${over ? "var(--sig)" : "var(--ink-3)"}" opacity="${over ? 0.9 : 0.22}" rx="1"/>`;
+  }
+  const pct = Math.round(m.p*100);
+  g += `<text x="${pl}" y="${capY}" class="ax" font-size="11" fill="var(--ink-2)">${pct} of 100 cells colored → YES worth ${pct}¢</text>`;
+
+  // Threshold line (draggable)
+  if (inT) {
+    g += `<line x1="${X(cur.T)}" y1="${pt}" x2="${X(cur.T)}" y2="${axisY}" stroke="var(--sig)" stroke-width="2" stroke-dasharray="4 3"/>`;
+    g += `<circle cx="${X(cur.T)}" cy="${pt}" r="4.5" fill="var(--sig)"/>`;
+    g += `<text x="${X(cur.T)}" y="${pt-6}" text-anchor="middle" class="ax" fill="var(--sig)">${Math.round(cur.T)}K</text>`;
+  }
 
   document.getElementById("chart-dist").innerHTML = svg(h, g);
 
@@ -430,32 +424,30 @@ function drawEV(cur, m) {
   const edge = p - mkt;
 
   const rungs = [
-    { lbl: "model − market",  net: edge,       on: true },
-    { lbl: "less taker fee",  net: edge - tk,  fee: tk,  on: true },
-    { lbl: "less limit fee",  net: edge - mkf, fee: mkf, on: true },
+    { lbl: "model − market",  net: edge },
+    { lbl: "less limit fee",  net: edge - mkf, fee: mkf },
+    { lbl: "less taker fee",  net: edge - tk,  fee: tk },
   ];
 
-  const h = 130, pl = 8, pr = 8, pt = 30, pb = 20;
+  const h = 128, pl = 8, pr = 8, pt = 34, pb = 20;
   const iw = W - pl - pr;
-  const ext = Math.max(Math.abs(edge), tk, mkf, 0.05);
-  const lo = -(ext * 1.35), hi = ext * 1.35;
+  const ext = Math.max(Math.abs(edge - tk), Math.abs(edge - mkf), Math.abs(edge), tk, 0.05) * 1.25;
+  const lo = -ext, hi = ext;
   const X = v => pl + ( (v - lo) / (hi - lo) ) * iw;
-  const barH = 13, gap = 20;
+  const barH = 14, gap = 24;
 
   let g = "";
-  g += `<line x1="${X(0)}" y1="${pt-8}" x2="${X(0)}" y2="${h-pb}" stroke="var(--ink-2)" stroke-width="1"/>`;
+  g += `<line x1="${X(0)}" y1="${pt-6}" x2="${X(0)}" y2="${h-pb}" stroke="var(--ink-2)" stroke-width="1"/>`;
   rungs.forEach((r, i) => {
     const y = pt + i * (barH + gap);
     const net = r.net;
-    const abs = Math.abs(net);
     const col = net >= 0 ? "var(--up)" : "var(--dn)";
-    // cumulative bar from 0 to net
     const x0 = X(Math.min(0, net)), x1 = X(Math.max(0, net));
     g += `<rect x="${x0}" y="${y}" width="${Math.max(1.5, x1-x0)}" height="${barH}" fill="${col}" opacity="0.9"/>`;
     g += `<text x="${pl+2}" y="${y-3}" class="ax" fill="var(--ink-2)">${r.lbl}</text>`;
-    g += `<text x="${net >= 0 ? x1+4 : x0-4}" y="${y+10}" text-anchor="${net >= 0 ? "start" : "end"}" class="ax" font-weight="700" fill="${col}">${net>=0?"+":""}${(net*100).toFixed(1)}¢</text>`;
+    g += `<text x="${W-pr}" y="${y+11}" text-anchor="end" class="ax" font-weight="700" fill="${col}" font-size="12">${net>=0?"+":""}${(net*100).toFixed(1)}¢</text>`;
   });
-  g += `<text x="${W/2}" y="${h-2}" text-anchor="middle" class="ax">net edge per contract, signed</text>`;
+  g += `<text x="${W/2}" y="${h-2}" text-anchor="middle" class="ax">0 = market · right = free money, left = paying too much</text>`;
   wrap.innerHTML = svg(h, g);
 }
 
