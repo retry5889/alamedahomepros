@@ -64,9 +64,10 @@ function erf(x0) {
 const Phi = z => 0.5*(1+erf(z/Math.SQRT2));
 const npdf = x => Math.exp(-x*x/2)/Math.sqrt(2*Math.PI);
 
-const feeTaker = p => 1.75 * p * (1 - p);
+// Fees in price-fraction units (1 = $1 = 100¢). Taker = 1.75% · p(1−p), max 0.44¢ at 50¢.
+const feeTaker = p => 0.0175 * p * (1 - p);
 const feeMaker = p => 0.25 * feeTaker(p);
-const fmtC = f => f.toFixed(2) + "¢";
+const fmtC = f => (f * 100).toFixed(2) + "¢";
 
 const MODELS = [
   { name:"No-change", short:"no-change", hex:"var(--blue)", needs:null, center:(A,C,F)=>A, sd:13.0 },
@@ -91,7 +92,7 @@ function invNormCdf(p) {
     return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) / ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
   }
   const q = p - 0.5, r = q*q;
-  return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q / ((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1;
+  return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q / (((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1);
 }
 
 
@@ -244,33 +245,32 @@ function render(cur) {
   const vSub = document.getElementById("v-sub");
   v.className = "verdict";
   const Tr = Math.round(T);
+  const rng = (a, b) => c(a) === c(b) ? `${c(a)}\u00a2` : `${c(a)}\u2013${c(b)}\u00a2`;
+  const rngP = (a, b) => c(a) === c(b) ? `+${c(a)}\u00a2` : `+${c(a)} to +${c(b)}\u00a2`;
+  const nLive = models.filter(mm => mm.has).length;
   if (hasM) {
-    const loC = c(lo), hiC = c(hi);
-    const tk = feeTaker(mkt);
+    const tk = feeTaker(mkt), maker = feeMaker(mkt);
     if (lo > mkt) {
       const edgeLo = lo - mkt, edgeHi = hi - mkt;
-      const nLo = Math.max(0, edgeLo - tk), nHi = Math.max(0, edgeHi - tk);
       v.classList.add("pos");
       vTag.textContent = "YES CHEAP";
-      vBig.textContent = `+${c(edgeLo)} to +${c(edgeHi)}¢`;
-      const maker = feeMaker(mkt);
-      vSub.textContent = `Models ${loC}–${hiC}¢ vs YES ${mk}¢. Taker net +${c(nLo)}–${c(nHi)}¢; limit order +${c(Math.max(0, edgeLo - maker))}–${c(Math.max(0, edgeHi - maker))}¢.`;
+      vBig.textContent = rngP(edgeLo, edgeHi);
+      vSub.textContent = `Model ${rng(lo, hi)} vs YES ${mk}\u00a2. Net ${rngP(Math.max(0, edgeLo - tk), Math.max(0, edgeHi - tk))} taker, ${rngP(Math.max(0, edgeLo - maker), Math.max(0, edgeHi - maker))} limit.`;
     } else if (hi < mkt) {
       const noEdgeLo = mkt - hi, noEdgeHi = mkt - lo;
-      const ntk = feeTaker(mkt), mnk = feeMaker(mkt);
       v.classList.add("neg");
       vTag.textContent = "YES RICH";
-      vBig.textContent = `NO at ${100 - mk}¢`;
-      vSub.textContent = `Models ${loC}–${hiC}¢ vs YES ${mk}¢. NO edge +${c(noEdgeLo)}–${c(noEdgeHi)}¢ raw; taker net +${c(noEdgeLo - ntk)}–${c(noEdgeHi - ntk)}¢, limit +${c(noEdgeLo - mnk)}–${c(noEdgeHi - mnk)}¢.`;
+      vBig.textContent = `NO at ${100 - mk}\u00a2`;
+      vSub.textContent = `Model ${rng(lo, hi)} vs YES ${mk}\u00a2. NO edge ${rng(noEdgeLo, noEdgeHi)} raw; net ${rng(noEdgeLo - tk, noEdgeHi - tk)} taker, ${rng(noEdgeLo - maker, noEdgeHi - maker)} limit.`;
     } else {
       vTag.textContent = "NO EDGE";
-      vBig.textContent = `${loC}–${hiC}¢`;
-      vSub.textContent = `Market ${mk}¢ inside model range at ${Tr}K. Taker fee ${fmtC(tk)}.`;
+      vBig.textContent = rng(lo, hi);
+      vSub.textContent = `Market ${mk}\u00a2 sits inside the model range at ${Tr}K. Taker fee ${fmtC(tk)}.`;
     }
   } else {
     vTag.textContent = "FAIR VALUE";
-    vBig.textContent = `${c(lo)}–${c(hi)}¢`;
-    vSub.textContent = `Model range for P(claims ≥ ${Tr}K). Enter market YES price for edge.`;
+    vBig.textContent = rng(lo, hi);
+    vSub.textContent = (nLive > 1 ? "Model range" : "Model fair value") + ` for P(claims \u2265 ${Tr}K). Enter market YES price to see edge.`;
   }
 
   // Model rows
@@ -304,7 +304,7 @@ function render(cur) {
   document.getElementById("m-cap").textContent = (hasM ?
     "Tick = market. Fill past tick = cheap. Tap row for curve." :
     "Fair YES per model, 0–100¢. Faint mark = 50¢. Tap row for curve.") +
-    (missing ? ` ${missing} off.` : "");
+    (missing ? ` ${missing} model${missing > 1 ? "s" : ""} idle.` : "");
 
   const liveModels = models.filter(m => m.has);
   const legend = document.getElementById("edge-legend");
@@ -329,179 +329,173 @@ function mulberry32(a) {
 }
 
 function drawDist(cur, m) {
-  const pl = 8, pr = 8;
-  const pt = 12, curveH = 138;
+  const pl = 10, pr = 10;
+  const pt = 28, curveH = 118;
   const axisY = pt + curveH;
-  const tickLblY = axisY + 16;
-  const waffleTop = tickLblY + 8;
-  const cellH = 9, cellGap = 1;
-  const ROWS = 10, COLS = 10, CELLS = 100;
-  const waffleH = ROWS * (cellH + cellGap) - cellGap;
-  const capY = waffleTop + waffleH + 14;
-  const h = capY + 8;
-
+  const tickLblY = axisY + 15;
+  const waffleTop = tickLblY + 13;
+  const ROWS = 10, COLS = 10, CELLS = 100, cellGap = 2, cellH = 9;
   const iw = W - pl - pr;
+  const cellW = (iw - (COLS - 1) * cellGap) / COLS;
+  const waffleH = ROWS * cellH + (ROWS - 1) * cellGap;
+  const capY = waffleTop + waffleH + 16;
+  const h = capY + 6;
+
   const half = 3.4;
-  const span = 2*half*m.sd;
-  const xLo = m.c - span/2, xHi = m.c + span/2;
-  const X = x => pl + (x - xLo)/span*iw;
-  const Y = d => pt + curveH - d*curveH;
+  const span = 2 * half * m.sd;
+  const xLo = m.c - span / 2, xHi = m.c + span / 2;
+  const X = x => pl + (x - xLo) / span * iw;
+  const Y = d => pt + curveH - d * curveH;
   const N = 100;
 
   let lineP = "", fillP = "";
   for (let i = 0; i <= N; i++) {
-    const x = xLo + span*i/N;
-    const y = Y(npdf((x - m.c)/m.sd));
+    const x = xLo + span * i / N;
+    const y = Y(npdf((x - m.c) / m.sd));
     lineP += (i ? "L" : "M") + `${X(x).toFixed(1)} ${y.toFixed(1)} `;
   }
   const inT = cur.T >= xLo && cur.T <= xHi;
   if (cur.T < xHi) {
     const t0 = Math.max(cur.T, xLo);
     for (let i = 0; i <= N; i++) {
-      const x = t0 + (xHi - t0)*i/N;
-      const y = Y(npdf((x - m.c)/m.sd));
+      const x = t0 + (xHi - t0) * i / N;
+      const y = Y(npdf((x - m.c) / m.sd));
       fillP += (i ? "L" : "M") + `${X(x).toFixed(1)} ${y.toFixed(1)} `;
     }
-    fillP += `L${X(xHi).toFixed(1)} ${Y(0).toFixed(1)} L${X(Math.max(cur.T,xLo)).toFixed(1)} ${Y(0).toFixed(1)} Z`;
+    fillP += `L${X(xHi).toFixed(1)} ${Y(0).toFixed(1)} L${X(t0).toFixed(1)} ${Y(0).toFixed(1)} Z`;
   }
 
   let g = "";
-  if (fillP) g += `<path d="${fillP}" fill="${m.hex}" opacity="0.20"/>`;
+  g += `<line x1="${pl}" y1="${axisY}" x2="${W - pr}" y2="${axisY}" stroke="var(--line-2)" stroke-width="1"/>`;
+  if (fillP) g += `<path d="${fillP}" fill="${m.hex}" opacity="0.22"/>`;
   g += `<path d="${lineP}" fill="none" stroke="${m.hex}" stroke-width="2"/>`;
 
-  // σ ticks along the curve axis (labels merged with center K)
-  [2, 1, 0, -1, -2].map(k => ({ v: m.c + k*m.sd, k })).forEach(o => {
+  [2, 1, 0, -1, -2].map(k => ({ v: m.c + k * m.sd, k })).forEach(o => {
     if (o.v > xLo && o.v < xHi) {
-      g += `<line x1="${X(o.v)}" y1="${axisY-4}" x2="${X(o.v)}" y2="${axisY+4}" stroke="var(--ink-3)" stroke-width="1"/>`;
-      const lbl = o.k === 0 ? `ctr·${Math.round(m.c)}K` : (o.k > 0 ? "+"+o.k+"σ" : o.k+"σ");
+      g += `<line x1="${X(o.v)}" y1="${axisY - 4}" x2="${X(o.v)}" y2="${axisY + 4}" stroke="var(--ink-3)" stroke-width="1"/>`;
+      const lbl = o.k === 0 ? `ctr\u00b7${Math.round(m.c)}K` : (o.k > 0 ? "+" + o.k + "\u03c3" : o.k + "\u03c3");
       g += `<text x="${X(o.v)}" y="${tickLblY}" text-anchor="middle" class="ax">${lbl}</text>`;
     }
   });
 
-  // Waffle grid: 10x10, cell cI represents the (cI+0.5)/100 quantile of the
-  // model distribution; colored when that quantile ≥ T. Count = fair YES price.
-  const cellW = iw / COLS - cellGap;
+  // Waffle: cell cI is the (cI+0.5)/100 quantile; filled when quantile >= T.
   for (let cI = 0; cI < CELLS; cI++) {
     const col = cI % COLS, row = Math.floor(cI / COLS);
-    const frac = (cI + 0.5) / CELLS;
-    const x = m.c + m.sd * invNormCdf(frac);
-    const over = x >= cur.T;
-    g += `<rect x="${(pl + col*(cellW+cellGap)).toFixed(1)}" y="${waffleTop + row*(cellH+cellGap)}" width="${cellW.toFixed(1)}" height="${cellH}" fill="${over ? "var(--sig)" : "var(--ink-3)"}" opacity="${over ? 0.9 : 0.22}" rx="1"/>`;
+    const q = m.c + m.sd * invNormCdf((cI + 0.5) / CELLS);
+    const over = q >= cur.T;
+    const cx = (pl + col * (cellW + cellGap)).toFixed(1);
+    const cy = waffleTop + row * (cellH + cellGap);
+    g += over
+      ? `<rect x="${cx}" y="${cy}" width="${cellW.toFixed(1)}" height="${cellH}" fill="${m.hex}" rx="1"/>`
+      : `<rect x="${cx}" y="${cy}" width="${cellW.toFixed(1)}" height="${cellH}" fill="var(--track)" stroke="var(--line-2)" stroke-width="1" rx="1"/>`;
   }
-  const pct = Math.round(m.p*100);
-  g += `<text x="${pl}" y="${capY}" class="ax" font-size="11" fill="var(--ink-2)">${pct} of 100 cells colored → YES worth ${pct}¢</text>`;
+  const pct = Math.round(m.p * 100);
+  g += `<text x="${pl}" y="${capY}" class="ax" font-size="11" fill="var(--ink-2)">${pct} of 100 outcomes clear ${Math.round(cur.T)}K \u2192 fair YES ${pct}\u00a2</text>`;
 
   // Threshold line (draggable)
   if (inT) {
-    g += `<line x1="${X(cur.T)}" y1="${pt}" x2="${X(cur.T)}" y2="${axisY}" stroke="var(--sig)" stroke-width="2" stroke-dasharray="4 3"/>`;
-    g += `<circle cx="${X(cur.T)}" cy="${pt}" r="4.5" fill="var(--sig)"/>`;
-    g += `<text x="${X(cur.T)}" y="${pt-6}" text-anchor="middle" class="ax" fill="var(--sig)">${Math.round(cur.T)}K</text>`;
+    g += `<line x1="${X(cur.T)}" y1="${pt - 4}" x2="${X(cur.T)}" y2="${axisY}" stroke="var(--amber)" stroke-width="2" stroke-dasharray="4 3"/>`;
+    g += `<circle cx="${X(cur.T)}" cy="${pt - 4}" r="4.5" fill="var(--amber)"/>`;
+    const tx = Math.max(pl + 16, Math.min(W - pr - 16, X(cur.T)));
+    g += `<text x="${tx}" y="${pt - 13}" text-anchor="middle" class="ax" font-weight="700" fill="var(--amber)">${Math.round(cur.T)}K</text>`;
   }
 
   document.getElementById("chart-dist").innerHTML = svg(h, g);
 
-  // σ chips
+  // sigma chips
   const chipsEl = document.getElementById("z-chips");
   const defs = [{k:0.3}, {k:0.5}, {k:1}, {k:2}];
   chipsEl.innerHTML = defs.map(d => {
-    const dist = d.k * m.sd;
     const p2 = Math.round(Phi(-d.k)*100);
-    return `<button class="z-chip" data-k="${d.k}">${d.k}σ → ${p2}¢</button>`;
+    return `<button class="z-chip" data-k="${d.k}">${d.k}\u03c3 \u2192 ${p2}\u00a2</button>`;
   }).join("");
 
-  document.getElementById("dist-model").textContent = m.name + " · σ " + m.sd.toFixed(1) + "K";
+  document.getElementById("dist-model").textContent = m.name + " \u00b7 \u03c3 " + m.sd.toFixed(1) + "K";
 }
 
-// Edge view: zoomed strip around the market price, 1¢ ticks, fee bites shown.
+// Edge card: cumulative rungs model-market -> less limit -> less taker.
 function drawEV(cur, m) {
   const wrap = document.getElementById("chart-ev");
   if (cur.mkt === null || !m.has) {
-    wrap.innerHTML = `<div class="ev-empty">enter market YES ¢</div>`;
+    wrap.innerHTML = `<div class="ev-empty">enter market YES \u00a2 above</div>`;
     return;
   }
   const p = m.p, mkt = cur.mkt;
   const tk = feeTaker(mkt), mkf = feeMaker(mkt);
   const edge = p - mkt;
-
   const rungs = [
-    { lbl: "model − market",  net: edge },
-    { lbl: "less limit fee",  net: edge - mkf, fee: mkf },
-    { lbl: "less taker fee",  net: edge - tk,  fee: tk },
+    { lbl: "model \u2212 market", net: edge },
+    { lbl: "less limit fee",  net: edge - mkf },
+    { lbl: "less taker fee",  net: edge - tk },
   ];
-
-  const h = 128, pl = 8, pr = 8, pt = 34, pb = 20;
-  const iw = W - pl - pr;
-  const ext = Math.max(Math.abs(edge - tk), Math.abs(edge - mkf), Math.abs(edge), tk, 0.05) * 1.25;
-  const lo = -ext, hi = ext;
-  const X = v => pl + ( (v - lo) / (hi - lo) ) * iw;
-  const barH = 14, gap = 24;
-
+  const pl = 10, pr = 10, valW = 58, pt = 8, rowH = 42, barH = 12;
+  const iw = W - pl - pr - valW;
+  const ext = Math.max(...rungs.map(r => Math.abs(r.net)), 0.02) * 1.15;
+  const X = v => pl + ((v + ext) / (2 * ext)) * iw;
+  const capY = pt + 3 * rowH + 12;
+  const h = capY + 6;
   let g = "";
-  g += `<line x1="${X(0)}" y1="${pt-6}" x2="${X(0)}" y2="${h-pb}" stroke="var(--ink-2)" stroke-width="1"/>`;
+  g += `<line x1="${X(0).toFixed(1)}" y1="${pt + 10}" x2="${X(0).toFixed(1)}" y2="${pt + 3 * rowH - 8}" stroke="var(--ink-3)" stroke-width="1"/>`;
   rungs.forEach((r, i) => {
-    const y = pt + i * (barH + gap);
-    const net = r.net;
-    const col = net >= 0 ? "var(--up)" : "var(--dn)";
-    const x0 = X(Math.min(0, net)), x1 = X(Math.max(0, net));
-    g += `<rect x="${x0}" y="${y}" width="${Math.max(1.5, x1-x0)}" height="${barH}" fill="${col}" opacity="0.9"/>`;
-    g += `<text x="${pl+2}" y="${y-3}" class="ax" fill="var(--ink-2)">${r.lbl}</text>`;
-    g += `<text x="${W-pr}" y="${y+11}" text-anchor="end" class="ax" font-weight="700" fill="${col}" font-size="12">${net>=0?"+":""}${(net*100).toFixed(1)}¢</text>`;
+    const y0 = pt + i * rowH;
+    const col = r.net >= 0 ? "var(--up)" : "var(--dn)";
+    const x0 = X(Math.min(0, r.net)), x1 = X(Math.max(0, r.net));
+    g += `<text x="${pl}" y="${y0 + 10}" class="ax">${r.lbl}</text>`;
+    g += `<rect x="${x0.toFixed(1)}" y="${y0 + 16}" width="${Math.max(1.5, x1 - x0).toFixed(1)}" height="${barH}" fill="${col}" opacity="0.9"/>`;
+    g += `<text x="${W - pr}" y="${y0 + 26}" text-anchor="end" class="ax" font-weight="700" font-size="12" fill="${col}">${r.net >= 0 ? "+" : ""}${(r.net * 100).toFixed(1)}\u00a2</text>`;
   });
-  g += `<text x="${W/2}" y="${h-2}" text-anchor="middle" class="ax">0 = market · right = free money, left = paying too much</text>`;
+  g += `<text x="${pl}" y="${capY}" class="ax">line = market price \u00b7 bars right of it = edge kept after fees</text>`;
   wrap.innerHTML = svg(h, g);
 }
 
 function drawEdge(models, A, Tr, mkt) {
   const wrap = document.getElementById("chart-edge");
   const hdr = document.getElementById("edge-hdr");
-  const h = 180, pl = 4, pr = 8, pt = 14, pb = 22;
+  const h = 200, pl = 10, pr = 10, pt = 18, pb = 36;
   const iw = W - pl - pr, ih = h - pt - pb;
   const lo = Tr - 12, hi = Tr + 12;
-  const X = t => pl + (t-lo)/(hi-lo)*iw;
+  const X = t => pl + (t - lo) / (hi - lo) * iw;
+  const anch = t => t <= lo ? "start" : t >= hi ? "end" : "middle";
+  const axLblY = h - pb + 15, capY = h - 5;
   const ts = []; for (let t = lo; t <= hi; t += 1) ts.push(t);
   const A_ = num("in-anchor") ?? 0, C_ = num("in-consensus") ?? A_, F_ = num("in-forecast") ?? A_;
 
   let g = "";
+  for (let t = lo; t <= hi; t += 4) {
+    g += `<line x1="${X(t)}" y1="${pt}" x2="${X(t)}" y2="${h - pb}" stroke="var(--line)"/>`;
+    g += `<text x="${X(t)}" y="${axLblY}" text-anchor="${anch(t)}" class="ax">${t}K</text>`;
+  }
   if (mkt === null) {
     hdr.textContent = "Fair price across thresholds";
-    const Y = p => pt + (1 - p)*ih;
-    for (let t = lo; t <= hi; t += 4) {
-      g += `<line x1="${X(t)}" y1="${pt}" x2="${X(t)}" y2="${h-pb}" stroke="var(--line)"/>`;
-      g += `<text x="${X(t)}" y="${h-pb+12}" text-anchor="middle" class="ax">${t}K</text>`;
-    }
-    g += `<line x1="${pl}" y1="${Y(0.5)}" x2="${W-pr}" y2="${Y(0.5)}" stroke="var(--ink-3)" stroke-dasharray="2 2" opacity="0.6"/>`;
-    g += `<text x="${pl+2}" y="${Y(0.5)-3}" class="ax">50¢</text>`;
+    const Y = p => pt + (1 - p) * ih;
+    g += `<line x1="${pl}" y1="${Y(0.5)}" x2="${W - pr}" y2="${Y(0.5)}" stroke="var(--ink-3)" stroke-dasharray="2 2" opacity="0.6"/>`;
+    g += `<text x="${W - pr}" y="${Y(0.5) - 4}" text-anchor="end" class="ax">50\u00a2</text>`;
     models.forEach(m => {
-      const pts = ts.map(t => `${X(t).toFixed(1)},${Y(pge(m.center(A_,C_,F_), t, m.sd)).toFixed(1)}`).join(" ");
+      const pts = ts.map(t => `${X(t).toFixed(1)},${Y(pge(m.center(A_, C_, F_), t, m.sd)).toFixed(1)}`).join(" ");
       g += `<polyline points="${pts}" fill="none" stroke="${m.hex}" stroke-width="2"/>`;
     });
-    g += `<line x1="${X(Tr)}" y1="${pt}" x2="${X(Tr)}" y2="${h-pb}" stroke="var(--ink-3)" stroke-dasharray="3 3"/>`;
-    g += `<text x="${W/2}" y="${h-1}" text-anchor="middle" class="ax">Fair YES price as threshold moves</text>`;
+    g += `<line x1="${X(Tr)}" y1="${pt}" x2="${X(Tr)}" y2="${h - pb}" stroke="var(--amber)" stroke-dasharray="3 3"/>`;
+    g += `<text x="${pl}" y="${capY}" class="ax">Fair YES price as the threshold moves \u00b7 amber = current T</text>`;
   } else {
     hdr.textContent = "Net edge across thresholds";
     let mn = 0, mx = 0;
-    const edges = models.map(m => ts.map(t => pge(m.center(A_,C_,F_), t, m.sd) - mkt));
+    const edges = models.map(m => ts.map(t => pge(m.center(A_, C_, F_), t, m.sd) - mkt));
     edges.forEach(es => es.forEach(e => { mn = Math.min(mn, e); mx = Math.max(mx, e); }));
     const scale = Math.max(Math.abs(mn), Math.abs(mx), 0.02) * 1.05;
-    const Y = e => pt + ih/2 - (e/scale)*(ih/2);
-    const tk = feeTaker(mkt);
-    const mkf = feeMaker(mkt);
-    g += `<line x1="${pl}" y1="${Y(0)}" x2="${W-pr}" y2="${Y(0)}" stroke="var(--ink)" stroke-width="1" opacity="0.55"/>`;
-    g += `<line x1="${pl}" y1="${Y(tk)}" x2="${W-pr}" y2="${Y(tk)}" stroke="var(--blue)" stroke-dasharray="2 2" opacity="0.7"/>`;
-    g += `<text x="${pl}" y="${Y(tk)+9}" class="ax">taker</text>`;
-    g += `<line x1="${pl}" y1="${Y(mkf)}" x2="${W-pr}" y2="${Y(mkf)}" stroke="var(--green)" stroke-dasharray="2 2" opacity="0.7"/>`;
-    g += `<text x="${pl}" y="${Y(mkf)+9}" class="ax">limit</text>`;
-    for (let t = lo; t <= hi; t += 4) {
-      g += `<line x1="${X(t)}" y1="${pt}" x2="${X(t)}" y2="${h-pb}" stroke="var(--line)"/>`;
-      g += `<text x="${X(t)}" y="${h-pb+12}" text-anchor="middle" class="ax">${t}K</text>`;
-    }
+    const Y = e => pt + ih / 2 - (e / scale) * (ih / 2);
+    const tk = feeTaker(mkt), mkf = feeMaker(mkt);
+    g += `<line x1="${pl}" y1="${Y(0)}" x2="${W - pr}" y2="${Y(0)}" stroke="var(--ink)" stroke-width="1" opacity="0.55"/>`;
+    g += `<line x1="${pl}" y1="${Y(tk)}" x2="${W - pr}" y2="${Y(tk)}" stroke="var(--blue)" stroke-dasharray="2 2" opacity="0.7"/>`;
+    g += `<text x="${W - pr}" y="${Y(tk) - 3}" text-anchor="end" class="ax">taker</text>`;
+    g += `<line x1="${pl}" y1="${Y(mkf)}" x2="${W - pr}" y2="${Y(mkf)}" stroke="var(--green)" stroke-dasharray="2 2" opacity="0.7"/>`;
+    g += `<text x="${pl}" y="${Y(mkf) + 11}" class="ax">limit</text>`;
     models.forEach((m, i) => {
       const pts = ts.map((t, j) => `${X(t).toFixed(1)},${Y(edges[i][j]).toFixed(1)}`).join(" ");
       g += `<polyline points="${pts}" fill="none" stroke="${m.hex}" stroke-width="2"/>`;
     });
-    g += `<line x1="${X(Tr)}" y1="${pt}" x2="${X(Tr)}" y2="${h-pb}" stroke="var(--ink-3)" stroke-dasharray="3 3"/>`;
-    g += `<text x="${W-pr}" y="${pt-2}" text-anchor="end" class="ax">+${Math.round(scale*100)}¢</text>`;
-    g += `<text x="${W/2}" y="${h-1}" text-anchor="middle" class="ax">Net YES edge · above dashed lines beats fees</text>`;
+    g += `<line x1="${X(Tr)}" y1="${pt}" x2="${X(Tr)}" y2="${h - pb}" stroke="var(--amber)" stroke-dasharray="3 3"/>`;
+    g += `<text x="${W - pr}" y="${pt - 6}" text-anchor="end" class="ax">+${Math.round(scale * 100)}\u00a2</text>`;
+    g += `<text x="${pl}" y="${capY}" class="ax">Net YES edge \u00b7 above the dashed fee lines beats fees</text>`;
   }
   wrap.innerHTML = svg(h, g);
 }
