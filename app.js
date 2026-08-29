@@ -338,8 +338,7 @@ function drawDist(cur, m) {
   const iw = W - pl - pr;
   const cellW = (iw - (COLS - 1) * cellGap) / COLS;
   const waffleH = ROWS * cellH + (ROWS - 1) * cellGap;
-  const capY = waffleTop + waffleH + 16;
-  const h = capY + 6;
+  const h = waffleTop + waffleH + 2;
 
   const half = 3.4;
   const span = 2 * half * m.sd;
@@ -390,7 +389,6 @@ function drawDist(cur, m) {
       : `<rect x="${cx}" y="${cy}" width="${cellW.toFixed(1)}" height="${cellH}" fill="var(--track)" stroke="var(--line-2)" stroke-width="1" rx="1"/>`;
   }
   const pct = Math.round(m.p * 100);
-  g += `<text x="${pl}" y="${capY}" class="ax" font-size="11" fill="var(--ink-2)">${pct} of 100 outcomes clear ${Math.round(cur.T)}K \u2192 fair YES ${pct}\u00a2</text>`;
 
   // Threshold line (draggable)
   if (inT) {
@@ -400,7 +398,8 @@ function drawDist(cur, m) {
     g += `<text x="${tx}" y="${pt - 13}" text-anchor="middle" class="ax" font-weight="700" fill="var(--amber)">${Math.round(cur.T)}K</text>`;
   }
 
-  document.getElementById("chart-dist").innerHTML = svg(h, g);
+  document.getElementById("chart-dist").innerHTML = svg(h, g) +
+    `<div class="chart-cap">${pct} of 100 outcomes clear ${Math.round(cur.T)}K \u2192 fair YES ${pct}\u00a2</div>`;
 
   // sigma chips
   const chipsEl = document.getElementById("z-chips");
@@ -432,8 +431,7 @@ function drawEV(cur, m) {
   const iw = W - pl - pr - valW;
   const ext = Math.max(...rungs.map(r => Math.abs(r.net)), 0.02) * 1.15;
   const X = v => pl + ((v + ext) / (2 * ext)) * iw;
-  const capY = pt + 3 * rowH + 12;
-  const h = capY + 6;
+  const h = pt + 3 * rowH + 2;
   let g = "";
   g += `<line x1="${X(0).toFixed(1)}" y1="${pt + 10}" x2="${X(0).toFixed(1)}" y2="${pt + 3 * rowH - 8}" stroke="var(--ink-3)" stroke-width="1"/>`;
   rungs.forEach((r, i) => {
@@ -444,23 +442,22 @@ function drawEV(cur, m) {
     g += `<rect x="${x0.toFixed(1)}" y="${y0 + 16}" width="${Math.max(1.5, x1 - x0).toFixed(1)}" height="${barH}" fill="${col}" opacity="0.9"/>`;
     g += `<text x="${W - pr}" y="${y0 + 26}" text-anchor="end" class="ax" font-weight="700" font-size="12" fill="${col}">${r.net >= 0 ? "+" : ""}${(r.net * 100).toFixed(1)}\u00a2</text>`;
   });
-  g += `<text x="${pl}" y="${capY}" class="ax">bars right of the line = profit after fees</text>`;
-  wrap.innerHTML = svg(h, g);
+  wrap.innerHTML = svg(h, g) + `<div class="chart-cap">bars right of the line = profit kept after fees</div>`;
 }
 
 function drawEdge(models, A, Tr, mkt) {
   const wrap = document.getElementById("chart-edge");
   const hdr = document.getElementById("edge-hdr");
-  const h = 200, pl = 10, pr = 10, pt = 18, pb = 36;
+  const h = 196, pl = 10, pr = 10, pt = 18, pb = 26;
   const iw = W - pl - pr, ih = h - pt - pb;
   const lo = Tr - 12, hi = Tr + 12;
   const X = t => pl + (t - lo) / (hi - lo) * iw;
   const anch = t => t <= lo ? "start" : t >= hi ? "end" : "middle";
-  const axLblY = h - pb + 15, capY = h - 5;
+  const axLblY = h - pb + 16;
   const ts = []; for (let t = lo; t <= hi; t += 1) ts.push(t);
   const A_ = num("in-anchor") ?? 0, C_ = num("in-consensus") ?? A_, F_ = num("in-forecast") ?? A_;
 
-  let g = "";
+  let g = "", cap = "";
   for (let t = lo; t <= hi; t += 4) {
     g += `<line x1="${X(t)}" y1="${pt}" x2="${X(t)}" y2="${h - pb}" stroke="var(--line)"/>`;
     g += `<text x="${X(t)}" y="${axLblY}" text-anchor="${anch(t)}" class="ax">${t}K</text>`;
@@ -475,7 +472,7 @@ function drawEdge(models, A, Tr, mkt) {
       g += `<polyline points="${pts}" fill="none" stroke="${m.hex}" stroke-width="2"${m.dash ? ` stroke-dasharray="${m.dash}"` : ""}/>`;
     });
     g += `<line x1="${X(Tr)}" y1="${pt}" x2="${X(Tr)}" y2="${h - pb}" stroke="var(--amber)" stroke-dasharray="3 3"/>`;
-    g += `<text x="${pl}" y="${capY}" class="ax">fair YES vs threshold \u00b7 amber = current T</text>`;
+    cap = "fair YES price as the threshold moves \u00b7 amber marks the current threshold";
   } else {
     hdr.textContent = "Net edge across thresholds";
     let mn = 0, mx = 0;
@@ -495,9 +492,9 @@ function drawEdge(models, A, Tr, mkt) {
     });
     g += `<line x1="${X(Tr)}" y1="${pt}" x2="${X(Tr)}" y2="${h - pb}" stroke="var(--amber)" stroke-dasharray="3 3"/>`;
     g += `<text x="${W - pr}" y="${pt - 6}" text-anchor="end" class="ax">+${Math.round(scale * 100)}\u00a2</text>`;
-    g += `<text x="${pl}" y="${capY}" class="ax">net YES edge \u00b7 above fee lines beats fees</text>`;
+    cap = "net YES edge by threshold \u00b7 a line above the dotted fee levels beats fees";
   }
-  wrap.innerHTML = svg(h, g);
+  wrap.innerHTML = svg(h, g) + `<div class="chart-cap">${cap}</div>`;
 }
 
 if (localStorage.getItem("cc_ok") === "1") {

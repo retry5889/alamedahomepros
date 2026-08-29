@@ -180,7 +180,7 @@ h1::before { content: "\25a0 "; color: var(--amber); letter-spacing: 0; }
 
 /* ---- Model rows ---- */
 .models-card { margin-top: 12px; padding-top: 2px; border-top: 1px solid var(--line-2); }
-.m-row { padding: 10px 2px 9px 10px; border-bottom: 1px solid var(--line); border-left: 2px solid transparent; cursor: pointer; touch-action: manipulation; }
+.m-row { padding: 10px 0 9px; border-bottom: 1px solid var(--line); cursor: pointer; touch-action: manipulation; }
 .m-top { display: flex; align-items: baseline; gap: 9px; }
 .m-dot { width: 7px; height: 7px; flex: none; background: var(--M); align-self: center; }
 .m-name { flex: 1; font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-2); user-select: none; }
@@ -198,8 +198,10 @@ h1::before { content: "\25a0 "; color: var(--amber); letter-spacing: 0; }
 .m-row.na .m-dot { background: var(--ink-3); opacity: 0.5; }
 .m-row.na .m-name, .m-row.na .m-price { opacity: 0.4; }
 .m-row.na .m-hint { display: block; }
-.m-row.sel { border-left-color: var(--amber); }
+.m-row.sel .m-name { color: var(--amber); }
+.m-row.sel .m-dot { background: var(--amber); }
 .m-cap { font-size: 10px; color: var(--ink-3); margin-top: 9px; letter-spacing: 0.04em; }
+.chart-cap { font-size: 10px; color: var(--ink-3); margin-top: 7px; letter-spacing: 0.04em; line-height: 1.5; }
 
 /* ---- Chart sections ---- */
 .chart-card { margin-top: 16px; padding: 0; border-top: 1px solid var(--line-2); }
