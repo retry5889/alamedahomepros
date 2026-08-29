@@ -75,6 +75,27 @@ const MODELS = [
 ];
 const pge = (c,T,sd) => Phi((c-T)/sd);
 
+// Inverse normal CDF (rational approximation, accurate to ~1e-5).
+function invNormCdf(p) {
+  const a = [-3.969683028665376e+01, 2.209460984245205e+02, -2.759285104469687e+02, 1.383577518672690e+02, -3.066479806614716e+01, 2.506628277459239e+00];
+  const b = [-5.447609879822406e+01, 1.615858368580409e+02, -1.556989798598866e+02, 6.680131188771972e+01, -1.328068155288572e+01];
+  const c = [-0.007784894002430293, -0.3223964580411365, -2.400758277161790, -2.549732539343734, 4.374664141464968, 2.938163982698783];
+  const d = [0.007784695709041462, 0.3224671290700398, 2.445134137142996, 3.754408661907416];
+  const pl = 0.02425;
+  if (p < pl) {
+    const q = Math.sqrt(-2 * Math.log(p));
+    return (((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) / ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+  }
+  if (p > 1 - pl) {
+    const q = Math.sqrt(-2 * Math.log(1-p));
+    return -(((((c[0]*q+c[1])*q+c[2])*q+c[3])*q+c[4])*q+c[5]) / ((((d[0]*q+d[1])*q+d[2])*q+d[3])*q+1);
+  }
+  const q = p - 0.5, r = q*q;
+  return (((((a[0]*r+a[1])*r+a[2])*r+a[3])*r+a[4])*r+a[5])*q / ((((b[0]*r+b[1])*r+b[2])*r+b[3])*r+b[4])*r+1;
+}
+
+
+
 const FIELDS = ["in-anchor","in-consensus","in-forecast","in-threshold","in-market"];
 const els = Object.fromEntries(FIELDS.map(id => [id, document.getElementById(id)]));
 const verdict = document.getElementById("verdict");
@@ -308,7 +329,7 @@ function mulberry32(a) {
 }
 
 function drawDist(cur, m) {
-  const h = 168, pl = 8, pr = 8, pt = 12, pb = 34;
+  const h = 240, pl = 8, pr = 8, pt = 12, pb = 34;
   const iw = W - pl - pr, ih = h - pt - pb;
   const half = 3.4;
   const span = 2*half*m.sd;
@@ -338,27 +359,24 @@ function drawDist(cur, m) {
   if (fillP) g += `<path d="${fillP}" fill="${m.hex}" opacity="0.20"/>`;
   g += `<path d="${lineP}" fill="none" stroke="${m.hex}" stroke-width="2"/>`;
 
-  // Dot lattice: 24 columns x 5 rows of potential outcomes. Rows lit per column
-  // follow the curve height; a cell colors amber when the column is past T.
-  // n/c dots colored = the fair price, directly countable.
-  const COLS = 24, ROWS = 5;
-  const cw = iw/COLS, r0 = 1.7, gap = cw*0.42;
-  for (let cI = 0; cI < COLS; cI++) {
-    const x = xLo + span*(cI + 0.5)/COLS;
-    const dn = npdf((x - m.c)/m.sd);
-    const lit = Math.ceil(dn*ROWS);
+    // Waffle strip: 10x10 grid of outcome cells; a cell colors when its share of
+  // the probability mass sits at or above T. Each cell = 1% of all imagined prints.
+  const CELLS = 100, COLS = 10, ROWS = 10;
+  const cellW = iw / COLS, cellH = 10, cellGap = 2;
+  const waffleTop = pt + ih + 6;
+  const vx = cI => pl + cI * cellW + cellGap/2;
+  const vy = rI => waffleTop + rI * (cellH + 1);
+  for (let cI = 0; cI < CELLS; cI++) {
+    const col = cI % COLS, row = Math.floor(cI / COLS);
+    const frac = (cI + 0.5) / CELLS;              // this cell's probability mass
+    const x = m.c + m.sd * invNormCdf(frac);       // inverse-CDF position of this cell
     const over = x >= cur.T;
-    for (let rI = 0; rI < lit; rI++) {
-      const cx = X(x), cy = pt + ih - rI*gap;
-      g += `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r0}" fill="${over ? "var(--sig)" : "var(--ink-3)"}" opacity="${over ? 0.95 : 0.35}"/>`;
-    }
+    g += `<rect x="${vx(col).toFixed(1)}" y="${vy(row)}" width="${(cellW-cellGap).toFixed(1)}" height="${cellH}" fill="${over ? "var(--sig)" : "var(--ink-3)"}" opacity="${over ? 0.9 : 0.2}" rx="1"/>`;
   }
+  // Waffle caption
+  const pct = Math.round(m.p*100);
+  g += `<text x="${pl}" y="${waffleTop + ROWS*(cellH+1) + 12}" class="ax" font-size="11" fill="var(--ink-2)">${pct} of 100 cells colored = YES worth ${pct}¢</text>`;
 
-  // Key row inside the chart: "N of C outcomes ≥ T = value"
-  if (inT) {
-    const pct = Math.round(m.p*100);
-    g += `<text x="${pl}" y="${h-2}" class="ax" font-size="11" fill="var(--ink-2)">● ${pct} of 100 imagined prints ≥ T → YES worth ${pct}¢</text>`;
-  }
 
   // Threshold line (draggable)
   if (inT) {
@@ -416,7 +434,7 @@ function drawEV(cur, m) {
     { lbl: "less limit fee",  net: edge - mkf, fee: mkf, on: true },
   ];
 
-  const h = 96, pl = 8, pr = 8, pt = 30, pb = 20;
+  const h = 130, pl = 8, pr = 8, pt = 30, pb = 20;
   const iw = W - pl - pr;
   const ext = Math.max(Math.abs(edge), tk, mkf, 0.02);
   const lo = -(ext + 0.01), hi = ext + 0.01;
@@ -443,7 +461,7 @@ function drawEV(cur, m) {
 function drawEdge(models, A, Tr, mkt) {
   const wrap = document.getElementById("chart-edge");
   const hdr = document.getElementById("edge-hdr");
-  const h = 150, pl = 4, pr = 8, pt = 14, pb = 22;
+  const h = 180, pl = 4, pr = 8, pt = 14, pb = 22;
   const iw = W - pl - pr, ih = h - pt - pb;
   const lo = Tr - 12, hi = Tr + 12;
   const X = t => pl + (t-lo)/(hi-lo)*iw;

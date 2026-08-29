@@ -4,17 +4,17 @@
    where each dot is one imagined weekly print. */
 
 :root {
-  --bg: #0d1012;
-  --panel: #13171a;
-  --panel-2: #181d21;
+  --bg: #090a0b;
+  --panel: #141719;
+  --panel-2: #1b1f22;
   --ink: #e8eaec;
   --ink-2: #9aa1a9;
   --ink-3: #5c636b;
-  --line: #242a2f;
-  --line-2: #333a41;
-  --sig: #e8a33d;
-  --up: #3fb97f;
-  --dn: #e05d5d;
+  --line: #272c31;
+  --line-2: #383f46;
+  --sig: #f0a53f;
+  --up: #40c98a;
+  --dn: #e86060;
   --pos: var(--up);
   --neg: var(--dn);
   --blue: #5b8def;
@@ -117,10 +117,11 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .hdr-left { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 h1 {
   font-family: var(--mono);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   letter-spacing: 3px;
   text-transform: uppercase;
+  color: var(--sig);
 }
 .as-of { font-family: var(--mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.5px; }
 .btn-lock {
@@ -198,7 +199,7 @@ h1 {
 .v-big {
   display: block;
   font-family: var(--mono);
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 700;
   line-height: 1.1;
   margin-top: 2px;
@@ -226,16 +227,17 @@ h1 {
 .m-row.na .m-dot { background: var(--ink-3); opacity: 0.4; }
 .m-row.na .m-name, .m-row.na .m-price { opacity: 0.45; }
 .m-row.na .m-hint { display: block; }
-.m-row.sel { border-left-color: var(--M); background: var(--panel-2); }
+.m-row.sel { border-left-color: var(--M); background: var(--panel-2); padding-left: 4px; }
 .m-row.sel .m-dot { box-shadow: 0 0 0 2px var(--track); }
 .m-cap { font-family: var(--mono); font-size: 10px; color: var(--ink-3); margin-top: 6px; padding-left: 2px; letter-spacing: 0.5px; }
 
 /* ---- Chart cards ---- */
 .chart-card { margin-top: 8px; padding: 10px 12px; border: 1px solid var(--line-2); border-radius: 0; background: var(--panel); }
 .chart-hdr {
-  font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--ink-3);
+  font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--ink-2);
   text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 6px;
-  border-bottom: 1px solid var(--line); padding-bottom: 5px;
+  border-bottom: 1px solid var(--line-2); padding-bottom: 5px;
+  background: var(--panel-2); margin: -10px -12px 8px; padding: 8px 12px 6px;
 }
 .chart-hdr span { color: var(--sig); font-weight: 700; text-transform: none; letter-spacing: 0.5px; }
 #chart-dist svg, #chart-edge svg, #chart-ev svg { width: 100%; height: auto; display: block; }
