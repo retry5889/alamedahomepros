@@ -22,7 +22,7 @@ function toTop() {
 }
 
 function unlock() {
-  sessionStorage.setItem("cc_ok", "1");
+  localStorage.setItem("cc_ok", "1");
   codeInput.blur();
   gate.hidden = true;
   app.hidden = false;
@@ -34,7 +34,7 @@ function unlock() {
 }
 
 function lock() {
-  sessionStorage.removeItem("cc_ok");
+  localStorage.removeItem("cc_ok");
   app.hidden = true;
   gate.hidden = false;
   codeInput.value = "";
@@ -70,9 +70,9 @@ const feeMaker = p => 0.25 * feeTaker(p);
 const fmtC = f => (f * 100).toFixed(2) + "¢";
 
 const MODELS = [
-  { name:"No-change", short:"no-change", hex:"var(--blue)", needs:null, center:(A,C,F)=>A, sd:13.0 },
-  { name:"Consensus blend", short:"consensus blend", hex:"var(--orange)", needs:"C", center:(A,C,F)=>A+0.5*(C-A), sd:12.4 },
-  { name:"Forecast blend", short:"forecast blend", hex:"var(--green)", needs:"F", center:(A,C,F)=>A+0.9*(F-A), sd:12.0 },
+  { name:"No-change", short:"no-change", hex:"var(--m1)", dash:"", needs:null, center:(A,C,F)=>A, sd:13.0 },
+  { name:"Consensus blend", short:"consensus blend", hex:"var(--m2)", dash:"7 4", needs:"C", center:(A,C,F)=>A+0.5*(C-A), sd:12.4 },
+  { name:"Forecast blend", short:"forecast blend", hex:"var(--m3)", dash:"2 4", needs:"F", center:(A,C,F)=>A+0.9*(F-A), sd:12.0 },
 ];
 const pge = (c,T,sd) => Phi((c-T)/sd);
 
@@ -407,7 +407,7 @@ function drawDist(cur, m) {
   const defs = [{k:0.3}, {k:0.5}, {k:1}, {k:2}];
   chipsEl.innerHTML = defs.map(d => {
     const p2 = Math.round(Phi(-d.k)*100);
-    return `<button class="z-chip" data-k="${d.k}">${d.k}\u03c3 \u2192 ${p2}\u00a2</button>`;
+    return `<button class="z-chip" data-k="${d.k}">${d.k}\u03c3 ${p2}\u00a2</button>`;
   }).join("");
 
   document.getElementById("dist-model").textContent = m.name + " \u00b7 \u03c3 " + m.sd.toFixed(1) + "K";
@@ -444,7 +444,7 @@ function drawEV(cur, m) {
     g += `<rect x="${x0.toFixed(1)}" y="${y0 + 16}" width="${Math.max(1.5, x1 - x0).toFixed(1)}" height="${barH}" fill="${col}" opacity="0.9"/>`;
     g += `<text x="${W - pr}" y="${y0 + 26}" text-anchor="end" class="ax" font-weight="700" font-size="12" fill="${col}">${r.net >= 0 ? "+" : ""}${(r.net * 100).toFixed(1)}\u00a2</text>`;
   });
-  g += `<text x="${pl}" y="${capY}" class="ax">line = market price \u00b7 bars right of it = edge kept after fees</text>`;
+  g += `<text x="${pl}" y="${capY}" class="ax">bars right of the line = profit after fees</text>`;
   wrap.innerHTML = svg(h, g);
 }
 
@@ -472,10 +472,10 @@ function drawEdge(models, A, Tr, mkt) {
     g += `<text x="${W - pr}" y="${Y(0.5) - 4}" text-anchor="end" class="ax">50\u00a2</text>`;
     models.forEach(m => {
       const pts = ts.map(t => `${X(t).toFixed(1)},${Y(pge(m.center(A_, C_, F_), t, m.sd)).toFixed(1)}`).join(" ");
-      g += `<polyline points="${pts}" fill="none" stroke="${m.hex}" stroke-width="2"/>`;
+      g += `<polyline points="${pts}" fill="none" stroke="${m.hex}" stroke-width="2"${m.dash ? ` stroke-dasharray="${m.dash}"` : ""}/>`;
     });
     g += `<line x1="${X(Tr)}" y1="${pt}" x2="${X(Tr)}" y2="${h - pb}" stroke="var(--amber)" stroke-dasharray="3 3"/>`;
-    g += `<text x="${pl}" y="${capY}" class="ax">Fair YES price as the threshold moves \u00b7 amber = current T</text>`;
+    g += `<text x="${pl}" y="${capY}" class="ax">fair YES vs threshold \u00b7 amber = current T</text>`;
   } else {
     hdr.textContent = "Net edge across thresholds";
     let mn = 0, mx = 0;
@@ -485,22 +485,22 @@ function drawEdge(models, A, Tr, mkt) {
     const Y = e => pt + ih / 2 - (e / scale) * (ih / 2);
     const tk = feeTaker(mkt), mkf = feeMaker(mkt);
     g += `<line x1="${pl}" y1="${Y(0)}" x2="${W - pr}" y2="${Y(0)}" stroke="var(--ink)" stroke-width="1" opacity="0.55"/>`;
-    g += `<line x1="${pl}" y1="${Y(tk)}" x2="${W - pr}" y2="${Y(tk)}" stroke="var(--blue)" stroke-dasharray="2 2" opacity="0.7"/>`;
+    g += `<line x1="${pl}" y1="${Y(tk)}" x2="${W - pr}" y2="${Y(tk)}" stroke="var(--ink-3)" stroke-dasharray="1 3" opacity="0.9"/>`;
     g += `<text x="${W - pr}" y="${Y(tk) - 3}" text-anchor="end" class="ax">taker</text>`;
-    g += `<line x1="${pl}" y1="${Y(mkf)}" x2="${W - pr}" y2="${Y(mkf)}" stroke="var(--green)" stroke-dasharray="2 2" opacity="0.7"/>`;
+    g += `<line x1="${pl}" y1="${Y(mkf)}" x2="${W - pr}" y2="${Y(mkf)}" stroke="var(--ink-3)" stroke-dasharray="5 3" opacity="0.9"/>`;
     g += `<text x="${pl}" y="${Y(mkf) + 11}" class="ax">limit</text>`;
     models.forEach((m, i) => {
       const pts = ts.map((t, j) => `${X(t).toFixed(1)},${Y(edges[i][j]).toFixed(1)}`).join(" ");
-      g += `<polyline points="${pts}" fill="none" stroke="${m.hex}" stroke-width="2"/>`;
+      g += `<polyline points="${pts}" fill="none" stroke="${m.hex}" stroke-width="2"${m.dash ? ` stroke-dasharray="${m.dash}"` : ""}/>`;
     });
     g += `<line x1="${X(Tr)}" y1="${pt}" x2="${X(Tr)}" y2="${h - pb}" stroke="var(--amber)" stroke-dasharray="3 3"/>`;
     g += `<text x="${W - pr}" y="${pt - 6}" text-anchor="end" class="ax">+${Math.round(scale * 100)}\u00a2</text>`;
-    g += `<text x="${pl}" y="${capY}" class="ax">Net YES edge \u00b7 above the dashed fee lines beats fees</text>`;
+    g += `<text x="${pl}" y="${capY}" class="ax">net YES edge \u00b7 above fee lines beats fees</text>`;
   }
   wrap.innerHTML = svg(h, g);
 }
 
-if (sessionStorage.getItem("cc_ok") === "1") {
+if (localStorage.getItem("cc_ok") === "1") {
   unlock();
 } else {
   codeInput.focus();
