@@ -329,7 +329,7 @@ function mulberry32(a) {
 }
 
 function drawDist(cur, m) {
-  const h = 240, pl = 8, pr = 8, pt = 12, pb = 34;
+  const h = 240, pl = 8, pr = 8, pt = 12, pb = 90;
   const iw = W - pl - pr, ih = h - pt - pb;
   const half = 3.4;
   const span = 2*half*m.sd;
@@ -363,7 +363,7 @@ function drawDist(cur, m) {
   // the probability mass sits at or above T. Each cell = 1% of all imagined prints.
   const CELLS = 100, COLS = 10, ROWS = 10;
   const cellW = iw / COLS, cellH = 10, cellGap = 2;
-  const waffleTop = pt + ih + 6;
+  const waffleTop = pt + ih + 8;
   const vx = cI => pl + cI * cellW + cellGap/2;
   const vy = rI => waffleTop + rI * (cellH + 1);
   for (let cI = 0; cI < CELLS; cI++) {
@@ -375,7 +375,7 @@ function drawDist(cur, m) {
   }
   // Waffle caption
   const pct = Math.round(m.p*100);
-  g += `<text x="${pl}" y="${waffleTop + ROWS*(cellH+1) + 12}" class="ax" font-size="11" fill="var(--ink-2)">${pct} of 100 cells colored = YES worth ${pct}¢</text>`;
+  g += `<text x="${pl}" y="${waffleBot + 28}" class="ax" font-size="11" fill="var(--ink-2)">${pct} of 100 cells colored = YES worth ${pct}¢</text>`;
 
 
   // Threshold line (draggable)
@@ -386,10 +386,11 @@ function drawDist(cur, m) {
   }
 
   // σ ticks
+  const waffleBot = waffleTop + 10*(10+1);
   [0, 1, 2, -1, -2].map(k => ({ v: m.c + k*m.sd, k })).forEach(o => {
     if (o.v > xLo && o.v < xHi) {
-      g += `<line x1="${X(o.v)}" y1="${h-pb}" x2="${X(o.v)}" y2="${h-pb+5}" stroke="var(--ink-3)" stroke-width="1"/>`;
-      g += `<text x="${X(o.v)}" y="${h-pb+13}" text-anchor="middle" class="ax">${o.k===0?"ctr":(o.k>0?"+"+o.k+"σ":o.k+"σ")}</text>`;
+      g += `<line x1="${X(o.v)}" y1="${waffleBot+2}" x2="${X(o.v)}" y2="${waffleBot+7}" stroke="var(--ink-3)" stroke-width="1"/>`;
+      g += `<text x="${X(o.v)}" y="${waffleBot+16}" text-anchor="middle" class="ax">${o.k===0?"ctr":(o.k>0?"+"+o.k+"σ":o.k+"σ")}</text>`;
     }
   });
 
@@ -401,7 +402,7 @@ function drawDist(cur, m) {
     const yo = Y(npdf((o.x - m.c)/m.sd));
     g += `<circle cx="${X(o.x)}" cy="${yo}" r="2.5" fill="${o.strong ? "var(--ink-2)" : "var(--ink-3)"}"/>`;
   });
-  if (m.c > xLo && m.c < xHi) g += `<text x="${X(m.c)}" y="${h-pb+24}" text-anchor="middle" class="ax">${Math.round(m.c)}K</text>`;
+  if (m.c > xLo && m.c < xHi) g += `<text x="${X(m.c)}" y="${waffleBot + 40}" text-anchor="middle" class="ax">${Math.round(m.c)}K</text>`;
 
   document.getElementById("chart-dist").innerHTML = svg(h, g);
 
@@ -436,8 +437,8 @@ function drawEV(cur, m) {
 
   const h = 130, pl = 8, pr = 8, pt = 30, pb = 20;
   const iw = W - pl - pr;
-  const ext = Math.max(Math.abs(edge), tk, mkf, 0.02);
-  const lo = -(ext + 0.01), hi = ext + 0.01;
+  const ext = Math.max(Math.abs(edge), tk, mkf, 0.05);
+  const lo = -(ext * 1.35), hi = ext * 1.35;
   const X = v => pl + ( (v - lo) / (hi - lo) ) * iw;
   const barH = 13, gap = 20;
 
