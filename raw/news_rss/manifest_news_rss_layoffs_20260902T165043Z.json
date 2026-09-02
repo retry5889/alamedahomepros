@@ -1,0 +1,17 @@
+{
+  "ingested_time": "2026-09-02T16:50:43.441681+00:00",
+  "file": "news_rss_layoffs_20260902T165043Z_a94fb5122f6d.json",
+  "sha256": "a94fb5122f6d038925e6f6c23d0b52b883365d933d83902c425e626757c2799e",
+  "bytes": 294039,
+  "source_url": "news.google.com/rss",
+  "family": "L",
+  "queries": [
+    "layoffs",
+    "mass layoff",
+    "job cuts",
+    "furlough workers",
+    "unemployment claims week",
+    "workers laid off"
+  ],
+  "items": 602
+}
