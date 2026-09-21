@@ -1,7 +1,7 @@
 {
   "anchor": 196,
-  "consensus": null,
-  "forecast": null,
+  "consensus": 203.0,
+  "forecast": 201.0,
   "threshold": 185,
-  "fetched_at": "Thu Sep 17"
+  "fetched_at": "Mon Sep 21"
 }
