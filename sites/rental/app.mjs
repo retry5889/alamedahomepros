@@ -1,6 +1,6 @@
 import {FIELDS,GROUPS,REVIEW_ITEMS,MONTHS,DAYS} from './schema.mjs';
 import {calculate} from './model.mjs';import {newStudy,readMajor,writeMajor} from './simple.mjs';
-import {loadBook,saveBook,serializeBook,parseBackup} from './storage.mjs?v=2';
+import {loadBook,saveBook,serializeBook,parseBackup} from './storage.mjs?v=4';
 const $=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const loaded=loadBook();let book=loaded.book,paused=!!loaded.error,step=0,timer;
 const current=()=>book.properties.find(p=>p.id===book.active)||book.properties[0];
@@ -34,7 +34,7 @@ document.addEventListener('change',e=>{if(e.target.dataset.review){current().res
 $('fine').onclick=advanced;$('saved').onclick=places;$('new').onclick=add;$('clear-example').onclick=add;$('home').onclick=e=>{e.preventDefault();go(0);};
 $('rename').oninput=e=>{current().name=e.target.value;$('name').textContent=e.target.value;save();};$('select').onchange=e=>{save();book.active=e.target.value;step=0;render();$('rename').value=current().name;save();};
 $('delete').onclick=()=>{if(!confirm('Delete this property? Export a backup first if you need it.'))return;book.properties=book.properties.filter(p=>p.id!==book.active);if(!book.properties.length)book.properties.push(newStudy());book.active=book.properties[0].id;step=0;render();save();places();};
-$('export').onclick=()=>{save();const url=URL.createObjectURL(new Blob([serializeBook(book)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='tideland-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);};
+$('export').onclick=()=>{save();const url=URL.createObjectURL(new Blob([serializeBook(book)],{type:'application/json'})),a=document.createElement('a');a.href=url;a.download='rental-property-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);};
 $('import').onclick=()=>$('file').click();$('file').onchange=async e=>{const f=e.target.files[0];e.target.value='';if(!f)return;try{if(f.size>5000000)throw Error('File is too large.');const incoming=parseBackup(await f.text());if(!confirm('Replace the current fieldbook with this backup?'))return;book=incoming;paused=false;step=0;render();save();places();$('file-status').textContent='Backup restored.';}catch(err){$('file-status').textContent='Import not applied: '+err.message;}};
 window.addEventListener('storage',e=>{if(e.key==='tideland.fieldbook.v1'){paused=true;$('warning').hidden=false;$('warning').textContent='Changed in another tab. Saving paused. Export your work or reload.';}});
 window.addEventListener('pagehide',()=>{if(!paused)saveBook(book);});

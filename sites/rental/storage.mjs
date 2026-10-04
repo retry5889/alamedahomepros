@@ -6,7 +6,7 @@ export function serializeBook(book){return JSON.stringify(book,null,2);}
 export function parseBackup(text){
  if(typeof text!=='string'||text.length>5000000)throw new Error('Backup must be a JSON file smaller than 5 MB.');
  let raw;try{raw=JSON.parse(text);}catch{throw new Error('This file is not valid JSON.');}
- if(raw?.version!==1)throw new Error('This is not a supported Tideland backup (version 1).');
+ if(raw?.version!==1)throw new Error('This is not a supported rental property calculator backup (version 1).');
  if(!Array.isArray(raw.properties)||!raw.properties.length||raw.properties.length>50)throw new Error('A backup must contain between 1 and 50 properties.');
  const properties=raw.properties.map(sanitizeProperty);
  const ids=properties.map(p=>p.id);
