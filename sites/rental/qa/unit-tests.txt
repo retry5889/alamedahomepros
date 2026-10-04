@@ -1,0 +1,220 @@
+TAP version 13
+# Subtest: mortgage matches reference, zero APR and all cash
+ok 1 - mortgage matches reference, zero APR and all cash
+  ---
+  duration_ms: 0.908427
+  type: 'test'
+  ...
+# Subtest: schema has thorough unique editable inputs
+ok 2 - schema has thorough unique editable inputs
+  ---
+  duration_ms: 0.215222
+  type: 'test'
+  ...
+# Subtest: empty property cannot receive positive verdict or misleading return
+ok 3 - empty property cannot receive positive verdict or misleading return
+  ---
+  duration_ms: 3.182434
+  type: 'test'
+  ...
+# Subtest: example stays clearly hypothetical and unverified
+ok 4 - example stays clearly hypothetical and unverified
+  ---
+  duration_ms: 3.062094
+  type: 'test'
+  ...
+# Subtest: annual totals reconcile to monthly operating statements
+ok 5 - annual totals reconcile to monthly operating statements
+  ---
+  duration_ms: 1.832374
+  type: 'test'
+  ...
+# Subtest: cash requirement reconciles and earnest is credited once
+ok 6 - cash requirement reconciles and earnest is credited once
+  ---
+  duration_ms: 1.189839
+  type: 'test'
+  ...
+# Subtest: all cash removes debt and does not alter operating NOI
+ok 7 - all cash removes debt and does not alter operating NOI
+  ---
+  duration_ms: 2.112556
+  type: 'test'
+  ...
+# Subtest: zero occupancy keeps fixed costs, debt, and zero cleaning
+ok 8 - zero occupancy keeps fixed costs, debt, and zero cleaning
+  ---
+  duration_ms: 1.125969
+  type: 'test'
+  ...
+# Subtest: cleaning revenue and turnover expense are not netted out
+ok 9 - cleaning revenue and turnover expense are not netted out
+  ---
+  duration_ms: 2.367688
+  type: 'test'
+  ...
+# Subtest: replacement reserve affects cash but not NOI
+ok 10 - replacement reserve affects cash but not NOI
+  ---
+  duration_ms: 1.965144
+  type: 'test'
+  ...
+# Subtest: monthly overrides and blocked nights govern annual income
+ok 11 - monthly overrides and blocked nights govern annual income
+  ---
+  duration_ms: 1.28804
+  type: 'test'
+  ...
+# Subtest: rental cap constrains nights including zero allowed
+ok 12 - rental cap constrains nights including zero allowed
+  ---
+  duration_ms: 0.342553
+  type: 'test'
+  ...
+# Subtest: break even solves actual cash flow and reports impossible
+ok 13 - break even solves actual cash flow and reports impossible
+  ---
+  duration_ms: 2.025325
+  type: 'test'
+  ...
+# Subtest: downside lowers cash flow; startup shock raises initial cash
+ok 14 - downside lowers cash flow; startup shock raises initial cash
+  ---
+  duration_ms: 1.148629
+  type: 'test'
+  ...
+# Subtest: pre-opening carrying funded once; first-year balance reconciles
+ok 15 - pre-opening carrying funded once; first-year balance reconciles
+  ---
+  duration_ms: 1.697463
+  type: 'test'
+  ...
+# Subtest: operating deficit flags additional funding
+ok 16 - operating deficit flags additional funding
+  ---
+  duration_ms: 1.30545
+  type: 'test'
+  ...
+# Subtest: bad number entries produce errors without NaN charts
+ok 17 - bad number entries produce errors without NaN charts
+  ---
+  duration_ms: 1.126819
+  type: 'test'
+  ...
+# Subtest: strict imports reject corrupt data and sanitize untrusted properties
+ok 18 - strict imports reject corrupt data and sanitize untrusted properties
+  ---
+  duration_ms: 0.744736
+  type: 'test'
+  ...
+# Subtest: all inputs have declared numeric bounds
+ok 19 - all inputs have declared numeric bounds
+  ---
+  duration_ms: 0.098901
+  type: 'test'
+  ...
+# Subtest: fees including cleaning use explicit selected bases
+ok 20 - fees including cleaning use explicit selected bases
+  ---
+  duration_ms: 2.095556
+  type: 'test'
+  ...
+# Subtest: positive verdict requires research confirmed and user target met
+ok 21 - positive verdict requires research confirmed and user target met
+  ---
+  duration_ms: 2.69148
+  type: 'test'
+  ...
+# Subtest: cleared structural inputs stay incomplete instead of silently changing financing
+ok 22 - cleared structural inputs stay incomplete instead of silently changing financing
+  ---
+  duration_ms: 3.515756
+  type: 'test'
+  ...
+# Subtest: zero-rate small loan is stable and finite
+ok 23 - zero-rate small loan is stable and finite
+  ---
+  duration_ms: 0.074431
+  type: 'test'
+  ...
+# Subtest: seller credits are limited to modeled closing expenses
+ok 24 - seller credits are limited to modeled closing expenses
+  ---
+  duration_ms: 1.003998
+  type: 'test'
+  ...
+# Subtest: all 12 months closed: carrying funds the year without replacement transfers
+ok 25 - all 12 months closed: carrying funds the year without replacement transfers
+  ---
+  duration_ms: 0.855866
+  type: 'test'
+  ...
+# Subtest: scenario backup preserves modifiers and rejects invalid imported numbers
+ok 26 - scenario backup preserves modifiers and rejects invalid imported numbers
+  ---
+  duration_ms: 0.315412
+  type: 'test'
+  ...
+# Subtest: months fully blocked cannot meet positive fixed operating costs
+ok 27 - months fully blocked cannot meet positive fixed operating costs
+  ---
+  duration_ms: 0.333023
+  type: 'test'
+  ...
+# Subtest: independent hand-calculated operating example
+ok 28 - independent hand-calculated operating example
+  ---
+  duration_ms: 1.049368
+  type: 'test'
+  ...
+# Subtest: new browser gets explicitly marked demo
+ok 29 - new browser gets explicitly marked demo
+  ---
+  duration_ms: 1.895605
+  type: 'test'
+  ...
+# Subtest: save and reload retains numeric zeros and notes
+ok 30 - save and reload retains numeric zeros and notes
+  ---
+  duration_ms: 0.951307
+  type: 'test'
+  ...
+# Subtest: storage failure does not pretend to save
+ok 31 - storage failure does not pretend to save
+  ---
+  duration_ms: 0.276632
+  type: 'test'
+  ...
+# Subtest: corrupt data surfaces error instead of crashing
+ok 32 - corrupt data surfaces error instead of crashing
+  ---
+  duration_ms: 0.143951
+  type: 'test'
+  ...
+# Subtest: backup roundtrip validates data and version
+ok 33 - backup roundtrip validates data and version
+  ---
+  duration_ms: 0.883427
+  type: 'test'
+  ...
+# Subtest: malformed or huge import does not mutate existing book
+ok 34 - malformed or huge import does not mutate existing book
+  ---
+  duration_ms: 0.441133
+  type: 'test'
+  ...
+# Subtest: duplicate ids and invalid selected id rejected
+ok 35 - duplicate ids and invalid selected id rejected
+  ---
+  duration_ms: 0.500484
+  type: 'test'
+  ...
+1..35
+# tests 35
+# suites 0
+# pass 35
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 137.63955

@@ -1,0 +1,39 @@
+name: Rental fieldbook checks
+on:
+  push:
+    branches: [main]
+    paths: ['sites/rental/**', 'scripts/select_site.py', 'tests/rental_browser.py', 'tests/test_site_selector.py', '.github/workflows/rental-tests.yml']
+  pull_request:
+    paths: ['sites/rental/**', 'scripts/select_site.py', 'tests/rental_browser.py', 'tests/test_site_selector.py', '.github/workflows/rental-tests.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Test calculations and persistence
+        run: node --test sites/rental/model.test.mjs sites/rental/storage.test.mjs
+      - name: Test reversible site selector
+        run: python3 -m unittest discover -s tests -p test_site_selector.py
+      - name: Install browser test dependencies
+        run: |
+          pip install -r tests/requirements-rental.txt
+          python3 -m playwright install --with-deps chromium webkit
+      - name: Exercise rental app in Chromium and WebKit
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/site.log 2>&1 &
+          python3 tests/rental_browser.py http://127.0.0.1:8765/sites/rental/
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: rental-browser-evidence
+          path: sites/rental/qa/

@@ -1,0 +1,47 @@
+name: Select public site
+on:
+  workflow_dispatch:
+    inputs:
+      site:
+        description: App to serve at the existing URL
+        type: choice
+        required: true
+        default: rental
+        options:
+          - rental
+          - claims
+permissions:
+  contents: write
+  pages: write
+concurrency:
+  group: public-site-switch
+  cancel-in-progress: false
+jobs:
+  select:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Verify selector
+        run: python3 -m unittest discover -s tests -p test_site_selector.py
+      - name: Select and commit
+        env:
+          SITE: ${{ inputs.site }}
+        run: |
+          python3 scripts/select_site.py "$SITE"
+          git config user.name "site-selector[bot]"
+          git config user.email "site-selector[bot]@users.noreply.github.com"
+          git add index.html ACTIVE_SITE
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Serve $SITE at the shared public URL"
+          git pull --rebase origin main
+          git push origin HEAD:main
+      - name: Request Pages rebuild
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api --method POST "repos/$GITHUB_REPOSITORY/pages/builds"

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 360" fill="none">
+ <defs>
+  <pattern id="paper" width="7" height="7" patternUnits="userSpaceOnUse"><circle cx="1" cy="2" r=".45" fill="#5b7065" opacity=".13"/><circle cx="5" cy="5" r=".35" fill="#5b7065" opacity=".1"/></pattern>
+  <clipPath id="frame"><rect width="1000" height="360" rx="8"/></clipPath>
+ </defs>
+ <g clip-path="url(#frame)">
+ <path fill="#e7e8dd" d="M0 0h1000v360H0z"/>
+ <circle cx="265" cy="92" r="43" fill="#e3b886" opacity=".75"/>
+ <path d="M0 132Q136 97 257 139T481 120T704 145T1000 117V228H0Z" fill="#d2dcd1"/>
+ <path d="M0 190Q164 165 332 192T670 177T1000 171V360H0Z" fill="#a8bfb5"/>
+ <path d="M0 237Q101 216 213 238T451 225T750 225T1000 215V360H0Z" fill="#87aaa0"/>
+ <path d="M0 289Q119 267 240 289T457 273T801 274T1000 269V360H0Z" fill="#688f86"/>
+ <g stroke="#e4ebe0" stroke-width="2" stroke-linecap="round" opacity=".7">
+ <path d="M33 218h87m43-6h71m-167 52h96m74-7h63m-253 66h102m148-7h133m-207-83h89m11 52h93m-252 59h128m245-128h63"/>
+ <path d="M410 202q39-5 67 0m-163 39q33-4 55 0m-290 49q39-5 67 0m-18 58q36-4 65 0"/>
+ </g>
+ <path d="M748 174L845 119l70 17 85-33v257H485l37-29 22-4 40-35 6-27 41-21 37-38 48-8Z" fill="#4f7365"/>
+ <path d="M738 212l-65 20-39 25-27 26-19 41-46 36h83l35-41 16-40 47-25 38-15 67-32-46-8Z" fill="#a69676"/>
+ <path d="M741 174l93-52 80 13 86-32v80l-80 29-42-7-37-18-89 24-62 37-69 28 19-27 35-17 28-33Z" fill="#8d9b72"/>
+ <path d="M881 165q-52 12-75 28t-58 35" stroke="#d0c1a0" stroke-width="9"/>
+ <path d="M867 184q-54 18-74 36" stroke="#c8b68e" stroke-width="3"/>
+ <!-- weatherboard cottage -->
+ <path d="M783 128l57-44 78 22 21 38-69-9-33 32Z" fill="#583f32"/>
+ <path d="M796 126l42-32 36 41v51l-78-14Z" fill="#e5cfaa"/>
+ <path d="M874 135l49-2v45l-49 8Z" fill="#c3ac85"/>
+ <path d="M787 126l51-41 40 47" stroke="#744d39" stroke-width="8" stroke-linecap="round"/>
+ <path d="M817 143h17v33l-17-3Z" fill="#526e60"/>
+ <path d="M848 142h14v18h-14Z" fill="#668b7c"/><path d="M889 145h17v17h-17Z" fill="#526e60"/>
+ <g stroke="#ad906c" stroke-width="1" opacity=".7"><path d="M800 136h44m-44 9h13m24 0h7m-44 9h13m24 0h7m-44 9h13m24 0h7"/></g>
+ <path d="M900 112V88h10v30Z" fill="#805d45"/>
+ <!-- wind-shaped coastal cypress -->
+ <path d="M956 172q-13-50-8-111m-2 55-28-31m29 9 22-21m-22 5-16-24" stroke="#4c5947" stroke-width="9" stroke-linecap="round"/>
+ <path d="M904 84q-28-3-18-16-28-3-18-16 8-11 31-7-4-17 27-13 2-17 31-8 22-9 34 6 24-1 27 12 27 9 6 21-3 16-25 15-5 15-37 5-13 13-34 2Z" fill="#3f6151"/>
+ <path d="M890 55q40 11 80 3m-57 13q25 6 65-2m-59-23q30 4 54-1" stroke="#6d8261" stroke-width="3" stroke-linecap="round"/>
+ <path d="M701 314q102-24 196 8t135-2v40H663Z" fill="#315b4c"/>
+ <g stroke="#8e9d72" stroke-width="2" stroke-linecap="round"><path d="M741 336l-3-14m4 14 7-10m121 22-2-15m3 16 6-8m-178 3-4-10m5 10 6-7m261 17-5-13m6 13 6-8"/></g>
+ <g stroke="#647869" stroke-width="2" stroke-linecap="round"><path d="M458 102q7-7 14 0 7-6 14-1m40 32q5-5 10 0 5-5 10 0"/></g>
+ <rect width="1000" height="360" fill="url(#paper)"/>
+ </g>
+</svg>
