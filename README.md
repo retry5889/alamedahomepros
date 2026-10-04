@@ -5,7 +5,11 @@ https://retry5889.github.io/alamedahomepros/.
 
 The visual direction is a Mendocino coastal cottage: cream paper, sea-glass green, redwood tones, locally served Fraunces type and original SVG coastal artwork. It is not a source of Mendocino market data or legal requirements.
 
-## Simplified interface
+## Current compact worksheet
+
+All 11 major inputs are visible together. No steps or Continue buttons. Two rounded totals update in place. Details remain optional.
+
+## Previous guided interface
 
 The main flow is now **Buy → Set up → Run → Estimate**, with 11 major inputs total (4 / 2 / 5 per step). New visitors start blank. Output emphasizes cash to open rounded to $1,000 and monthly cash flow rounded to $100, plus a ±10% rate/cost stress range. Minor inputs, seasonal overrides and calculation details are hidden behind optional controls.
 
