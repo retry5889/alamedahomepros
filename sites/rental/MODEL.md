@@ -51,3 +51,7 @@ A favorable verdict requires non-example data, complete/valid core assumptions, 
 ## Test evidence
 
 35 Node tests cover mortgage arithmetic, an independently hand-calculated operating case, all-cash/zero APR, zero occupancy, missing inputs, impossible break-even, annual caps, monthly overrides, seller credits, fee bases, carrying funded once, fully closed first year, reserves outside NOI, source/import validation and storage failure. Three Python tests cover reversible selection and unchanged originals. Browser tests exercise Chromium and WebKit at 320, 360, 375, 390, 430, 768 and 1280 CSS pixels. This is browser-engine testing, not a physical iPhone certification.
+
+## Simplified display
+
+The main interface groups setup and fixed-cost inputs and rounds displayed initial cash to $1,000 and monthly cash to $100. These are display approximations, not added calculation precision. Internal calculations and existing detailed inputs retain their original precision. New studies use explicit editable planning allowances of 3% booking fees, 5% routine repairs, 5% replacement reserves and 10% setup contingency; these are not current market fee claims. The What is assumed section exposes these values. Other detail remains optional.

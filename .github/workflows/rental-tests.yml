@@ -21,7 +21,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: Test calculations and persistence
-        run: node --test sites/rental/model.test.mjs sites/rental/storage.test.mjs
+        run: node --test sites/rental/model.test.mjs sites/rental/storage.test.mjs sites/rental/simple.test.mjs
       - name: Test reversible site selector
         run: python3 -m unittest discover -s tests -p test_site_selector.py
       - name: Install browser test dependencies

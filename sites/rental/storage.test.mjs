@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {createProperty} from './schema.mjs';
 import {loadBook,saveBook,parseBackup,serializeBook,STORAGE_KEY} from './storage.mjs';
 const memory=()=>{const data={};return{getItem:k=>data[k]??null,setItem:(k,v)=>{data[k]=v}}};
-test('new browser gets explicitly marked demo',()=>{const {book,error}=loadBook(memory());assert.equal(book.properties[0].example,true);assert.equal(error,null)});
+test('new browser starts a blank property',()=>{const {book,error}=loadBook(memory());assert.equal(book.properties[0].example,false);assert.equal(error,null)});
 test('save and reload retains numeric zeros and notes',()=>{const s=memory(),{book}=loadBook(s);book.properties[0].values.occupancy=0;book.properties[0].notes.price={source:'agent quote',date:'2026-10-04',note:'quoted'};assert.equal(saveBook(book,s),null);const loaded=loadBook(s).book;assert.equal(loaded.properties[0].values.occupancy,0);assert.equal(loaded.properties[0].notes.price.note,'quoted')});
 test('storage failure does not pretend to save',()=>{const s={getItem(){throw Error('blocked')},setItem(){throw Error('full')}};assert.ok(loadBook(s).error);assert.ok(saveBook(loadBook(memory()).book,s))});
 test('corrupt data surfaces error instead of crashing',()=>{const s=memory();s.setItem(STORAGE_KEY,'broken');assert.ok(loadBook(s).error)});

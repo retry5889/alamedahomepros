@@ -2,29 +2,13 @@
   {
     "browser": "chromium",
     "status": "passed",
-    "widths": [
-      320,
-      360,
-      375,
-      390,
-      430,
-      768,
-      1280
-    ],
-    "checks": "all five views; overflow; input focus; recalculation; persistence; research; source text XSS; seasonality; scenarios; new property; backup export; invalid/valid import; delete confirmation; corrupt storage protection; storage blocked; no external requests"
+    "main_inputs": 11,
+    "checks": "three-step entry; rounded estimates; five widths; persistence; advanced dialog; backup; invalid import; existing detailed data compatibility"
   },
   {
     "browser": "webkit",
     "status": "passed",
-    "widths": [
-      320,
-      360,
-      375,
-      390,
-      430,
-      768,
-      1280
-    ],
-    "checks": "all five views; overflow; input focus; recalculation; persistence; research; source text XSS; seasonality; scenarios; new property; backup export; invalid/valid import; delete confirmation; corrupt storage protection; storage blocked; no external requests"
+    "main_inputs": 11,
+    "checks": "three-step entry; rounded estimates; five widths; persistence; advanced dialog; backup; invalid import; existing detailed data compatibility"
   }
 ]

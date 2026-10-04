@@ -1,7 +1,7 @@
-import {createProperty} from './schema.mjs';
+import {newStudy} from './simple.mjs';
 import {sanitizeProperty} from './model.mjs';
 export const STORAGE_KEY='tideland.fieldbook.v1';
-export function freshBook(){const p=createProperty(true);return {version:1,active:p.id,properties:[p]};}
+export function freshBook(){const p=newStudy();return {version:1,active:p.id,properties:[p]};}
 export function serializeBook(book){return JSON.stringify(book,null,2);}
 export function parseBackup(text){
  if(typeof text!=='string'||text.length>5000000)throw new Error('Backup must be a JSON file smaller than 5 MB.');
