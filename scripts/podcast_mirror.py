@@ -57,6 +57,15 @@ def asset_manifest(data, token):
     }
 
 
+def is_stale_manifest(current,incoming):
+    if current.get("build_date") and incoming.get("build_date") and parsedate_to_datetime(current["build_date"])>parsedate_to_datetime(incoming["build_date"]):
+        return True
+    def version(name):
+        match=re.search(r"-v(\d+)",name)
+        return int(match.group(1)) if match else 0
+    return version(incoming["cover"])<version(current["cover"])
+
+
 def download(url, path, limit, expected=None):
     with requests.get(url, stream=True, timeout=(15, 120)) as r:
         r.raise_for_status()
@@ -84,7 +93,7 @@ def main():
     folders = [
         p
         for p in Path("a").iterdir()
-        if p.is_dir()
+        if p.is_dir() and not p.is_symlink()
         and re.fullmatch(r"[A-Za-z0-9_-]{43}", p.name)
         and (p / "feed.xml").exists()
     ]
@@ -104,26 +113,8 @@ def main():
     manifest = asset_manifest(response.content, dest.name)
     current = asset_manifest((dest / "feed.xml").read_bytes(), dest.name)
     # A subsequently activated direct publisher must not be rolled back.
-    if (
-        current["build_date"]
-        and manifest["build_date"]
-        and parsedate_to_datetime(current["build_date"])
-        > parsedate_to_datetime(manifest["build_date"])
-    ):
-        print("Staging output is older than the live feed; skipped.")
-        return
-    old_version = (
-        int(re.search(r"-v(\d+)", current["cover"]).group(1))
-        if "-v" in current["cover"]
-        else 0
-    )
-    new_version = (
-        int(re.search(r"-v(\d+)", manifest["cover"]).group(1))
-        if "-v" in manifest["cover"]
-        else 0
-    )
-    if new_version < old_version:
-        print("Staging artwork version is older than live artwork; skipped.")
+    if is_stale_manifest(current,manifest):
+        print("Staging output is older than the live feed/artwork; skipped.")
         return
     with tempfile.TemporaryDirectory() as tmp:
         payload = Path(tmp) / "payload"
