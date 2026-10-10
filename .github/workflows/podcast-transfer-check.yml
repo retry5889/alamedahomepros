@@ -1,0 +1,43 @@
+name: Podcast transfer capability check
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+  pages: write
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          sparse-checkout: .github/workflows
+      - run: python -m pip install requests
+      - name: Check source-read and native destination-write access
+        env:
+          PODCAST_PUBLISH_TOKEN: ${{ secrets.PODCAST_PUBLISH_TOKEN }}
+          GH_PAT: ${{ secrets.GH_PAT }}
+          GITHUB_PAT: ${{ secrets.GITHUB_PAT }}
+          BUILTIN_TOKEN: ${{ github.token }}
+          AZURE_TTS_KEY: ${{ secrets.AZURE_TTS_KEY }}
+          AZURE_TTS_REGION: ${{ secrets.AZURE_TTS_REGION }}
+        run: |
+          python - <<'PYCODE'
+          import os, json, subprocess, requests
+          source='https://api.github.com/repos/retry5889/cartesian-yacht/contents/newsletter-podcast/config.json'
+          rows=[]
+          seen=set()
+          for name in ['PODCAST_PUBLISH_TOKEN','GH_PAT','GITHUB_PAT','BUILTIN_TOKEN']:
+              token=os.getenv(name,'')
+              row={'name':name,'present':bool(token),'can_read_private_output':False}
+              if token and token not in seen:
+                  seen.add(token)
+                  r=requests.get(source,headers={'Authorization':'Bearer '+token,'Accept':'application/vnd.github+json'},timeout=30)
+                  row['private_source_status']=r.status_code
+                  row['can_read_private_output']=r.ok
+              rows.append(row)
+          push=subprocess.run(['git','push','--dry-run','origin','HEAD:main'],capture_output=True,check=False)
+          report={'credentials':rows,'native_destination_write':push.returncode==0,'azure_credentials_available':bool(os.getenv('AZURE_TTS_KEY') and os.getenv('AZURE_TTS_REGION'))}
+          print(json.dumps(report,indent=2))
+          PYCODE
